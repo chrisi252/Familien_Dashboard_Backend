@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   backend:
     build: .
@@ -8,7 +6,7 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-dashboard_user}:${POSTGRES_PASSWORD:-dashboard_password}@postgres:5432/${POSTGRES_DB:-familien_dashboard}
     ports:
-      - "${BACKEND_PORT:-5000}:5000"
+      - "127.0.0.1:${BACKEND_PORT:-5000}:5000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -22,11 +20,15 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dashboard_password}
       POSTGRES_DB: ${POSTGRES_DB:-familien_dashboard}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dashboard_user}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-dashboard_user} -d ${POSTGRES_DB:-familien_dashboard}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
