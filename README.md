@@ -1,5 +1,16 @@
 # Familien_Dashboard_Backend
 
+# 1. .env-Datei erstellen
+cp .env
+
+# 2. Datenbank starten
+podman compose up -d
+
+# 3. Anwendung starten
+uv run python main.py
+
+#
+
 ## Setup
 
 ### Voraussetzungen
