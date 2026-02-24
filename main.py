@@ -1,6 +1,5 @@
-def main():
-    print("Hello from familien-dashboard-backend!")
-
+from app import create_app
 
 if __name__ == "__main__":
-    main()
+    app = create_app()
+    app.run(debug=True, port=5000)
