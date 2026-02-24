@@ -1,6 +1,18 @@
-version: '3.8'
+version: "3.8"
 
 services:
+  backend:
+    build: .
+    container_name: familien_dashboard_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-dashboard_user}:${POSTGRES_PASSWORD:-dashboard_password}@postgres:5432/${POSTGRES_DB:-familien_dashboard}
+    ports:
+      - "${BACKEND_PORT:-5000}:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   postgres:
     image: postgres:16-alpine
     container_name: familien_dashboard_db

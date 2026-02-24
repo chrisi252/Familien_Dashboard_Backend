@@ -1,4 +1,6 @@
 import os
+
+from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -7,14 +9,15 @@ db = SQLAlchemy()
 
 
 def create_app():
+    load_dotenv()
     app = Flask(__name__)
 
     # CORS aktivieren
     CORS(app)
 
-    # Konfiguration laden (greift auf .env datei zurück)
+    # Konfiguration laden (greift auf .env datei zurueck)
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-        'DATABASE_URL', 'sqlite:///familiendashboard.db')
+        'DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Extensions mit app verbinden
