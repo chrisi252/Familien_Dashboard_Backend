@@ -118,3 +118,20 @@ Danach Migration erstellen und anwenden:
 uv run flask db migrate -m "Add Task model"
 uv run flask db upgrade
 ```
+
+
+## Authorization:
+- frontend -> Login Page -> backend schickt JWT Token zurück
+- frontend speichert JWT Token (z.B. in localStorage)
+- frontend sendet JWT Token in Authorization Header bei API Requests
+- backend validiert JWT Token und gibt Zugriff auf geschützte Ressourcen
+
+# auth
+JWT als cookie schicken und auf strict setzen
+- refresh token für access token
+
+# deploy 
+- docker image auf server (ssh)
+https://flask.palletsprojects.com/en/stable/deploying/uwsgi/
+
+
