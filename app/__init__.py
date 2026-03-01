@@ -5,6 +5,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -21,6 +22,10 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
         'DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    # JWT Konfiguration
+    app.config['JWT_SECRET_KEY'] = 'your-secret-key'  # Aus .env laden!
+    jwt = JWTManager(app)
 
     # Extensions mit app verbinden
     db.init_app(app)

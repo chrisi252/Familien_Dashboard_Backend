@@ -59,6 +59,7 @@ dependencies = [
     { name = "postgres" },
     { name = "psycopg" },
     { name = "psycopg2-binary" },
+    { name = "pyjwt" },
     { name = "python-dotenv" },
 ]
 
@@ -72,6 +73,7 @@ requires-dist = [
     { name = "postgres", specifier = ">=4.0" },
     { name = "psycopg", specifier = ">=3.3.3" },
     { name = "psycopg2-binary", specifier = ">=2.9.11" },
+    { name = "pyjwt", specifier = ">=2.11.0" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
 ]
 

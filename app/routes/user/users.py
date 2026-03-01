@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.services import UserService
+from flask_jwt_extended import create_access_token, jwt_required
 
 user_bp = Blueprint('user', __name__, url_prefix='/api/users')
 
@@ -79,3 +80,20 @@ def create_user():
             'status': 'error',
             'message': str(e)
         }), 500
+
+@user_bp.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    
+    # Validiere User (du brauchst password_hash im User-Model)
+    access_token = create_access_token(identity=email)
+    return jsonify({'access_token': access_token}), 200
+
+@user_bp.route('/profile', methods=['GET'])
+@jwt_required()
+def get_profile():
+    current_user_id = get_jwt_identity()
+    user = UserService.get_user(current_user_id)
+    return jsonify(user.to_dict()), 200
