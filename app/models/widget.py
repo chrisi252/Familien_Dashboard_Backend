@@ -52,13 +52,20 @@ class FamilyWidget(db.Model):
         'WidgetRolePermission', back_populates='family_widget', cascade='all, delete-orphan')
 
     def to_dict(self):
-        """Convert family widget to dictionary"""
+        """Convert family widget to dictionary with permissions"""
+        # Permissions wurden bereits im Service nach role_id gefiltert
+        # Es sollte max. 1 Permission geben
+        role_permission = self.permissions[0] if self.permissions else None
+
         return {
             'id': self.id,
-            'family_id': self.family_id,
-            'widget_type_id': self.widget_type_id,
-            'widget_key': self.widget_type.key if self.widget_type else None,
-            'is_enabled': self.is_enabled
+            'key': self.widget_type.key if self.widget_type else None,
+            'display_name': self.widget_type.display_name if self.widget_type else None,
+            'description': self.widget_type.description if self.widget_type else None,
+            'permissions': {
+                'read': role_permission.can_view if role_permission else False,
+                'write': role_permission.can_edit if role_permission else False,
+            }
         }
 
     def __repr__(self):
