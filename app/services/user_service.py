@@ -1,5 +1,6 @@
 from app import db
 from app.models import User
+from werkzeug.security import generate_password_hash
 
 
 class UserService:
@@ -16,25 +17,48 @@ class UserService:
         return User.query.get(user_id)
 
     @staticmethod
-    def create_user(name, email):
-        """Create a new user"""
-        # Check if user already exists
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-            raise ValueError(f"User with email {email} already exists")
+    def create_user(username, password, first_name, last_name, is_active=True):
+        """Create and persist a new user"""
+        if not username or not username.strip():
+            raise ValueError('Username is required')
+        if not password:
+            raise ValueError('Password is required')
+        if not first_name or not first_name.strip():
+            raise ValueError('First name is required')
+        if not last_name or not last_name.strip():
+            raise ValueError('Last name is required')
 
-        user = User(name=name, email=email)
-        db.session.add(user)
-        db.session.commit()
-        return user
+        normalized_username = username.strip()
+        if User.query.filter_by(username=normalized_username).first():
+            raise ValueError('Username already exists')
+
+        user = User(
+            username=normalized_username,
+            password_hash=generate_password_hash(password),
+            first_name=first_name.strip(),
+            last_name=last_name.strip(),
+            is_active=bool(is_active)
+        )
+
+        try:
+            db.session.add(user)
+            db.session.commit()
+            return user
+        except Exception:
+            db.session.rollback()
+            raise
 
     @staticmethod
     def delete_user(user_id):
         """Delete a user by ID"""
         user = User.query.get(user_id)
         if not user:
-            raise ValueError(f"User with ID {user_id} not found")
+            raise ValueError('User not found')
 
-        db.session.delete(user)
-        db.session.commit()
-        return user
+        try:
+            db.session.delete(user)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
+
