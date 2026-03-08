@@ -18,7 +18,7 @@ def create_family():
     Returns: Family object with creator as Familyadmin
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         data = request.get_json()
         
         if not data:
@@ -51,7 +51,7 @@ def join_family(family_id):
     Returns: UserFamilyRole object
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         
         # Add user with Guest role (default)
         user_family_role = FamilyService.add_user_to_family(
@@ -75,7 +75,7 @@ def join_family(family_id):
 def get_families():
     """Get all families of the current user"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         user_family_roles = FamilyService.get_user_families(current_user_id)
         
         families = [

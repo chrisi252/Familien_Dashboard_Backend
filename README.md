@@ -39,10 +39,11 @@ uv run python main.py
 
    Passe die Werte in der `.env`-Datei nach Bedarf an.
 
-3. **Datenbank starten**
+3. **Datenbank starten bzw auch builden**
 
    ```bash
    docker-compose up -d
+   docker oder podman compose up -d --build backend
    ```
 
    Die PostgreSQL-Datenbank läuft nun auf Port 5432.
