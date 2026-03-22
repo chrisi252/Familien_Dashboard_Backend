@@ -134,6 +134,25 @@ components:
         user:
           $ref: "#/components/schemas/User"
 
+    AuthLoginResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+        families:
+          type: array
+          items:
+            type: object
+            properties:
+              family_id:
+                type: integer
+                example: 1
+              is_admin:
+                type: boolean
+                example: true
+
     Error:
       type: object
       properties:
@@ -256,7 +275,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuthResponse"
+                $ref: "#/components/schemas/AuthLoginResponse"
         "400":
           description: Missing fields
           content:

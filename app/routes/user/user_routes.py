@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.services import UserService
+from app.services import UserService, FamilyService, RoleService
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 user_bp = Blueprint('user', __name__, url_prefix='/api/users')
@@ -84,10 +84,20 @@ def login():
         
         # Generate JWT token
         access_token = create_access_token(identity=str(user.id))
-        
+
+        user_families = FamilyService.get_user_families(user.id)
+        families = [
+            {
+                'family_id': ufr.family_id,
+                'is_admin': RoleService.is_family_admin(user.id, ufr.family_id)
+            }
+            for ufr in user_families
+        ]
+
         return jsonify({
             'access_token': access_token,
-            'user': user.to_dict()
+            'user': user.to_dict(),
+            'families': families,
         }), 200
         
     except Exception as e:
