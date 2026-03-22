@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify
 from .example import example_bp
 from .user import user_bp
 from .familiy import family_bp
+from .calendar import calendar_bp
 
 # Hauptrouten Blueprint
 main_bp = Blueprint('main', __name__)
@@ -16,4 +17,4 @@ def home():
     }), 200
 
 
-__all__ = ['main_bp', 'example_bp', 'user_bp', 'family_bp']
+__all__ = ['main_bp', 'example_bp', 'user_bp', 'family_bp', 'calendar_bp']
