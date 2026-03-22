@@ -86,7 +86,10 @@ uv run flask db migrate -m "Beschreibung der Änderung"
 
 ```bash
 uv run flask db upgrade
+uv run flask db migrate -m"name"
+uv run flask db upgrade
 ```
+(test: docker exec familien_dashboard_backend uv run flask db current)
 
 **Migration rückgängig machen**:
 
