@@ -23,35 +23,18 @@ def register():
         data = request.get_json()
         if not data:
             return jsonify({'error': 'No data provided'}), 400
-        
-        username = data.get('username')
-        password = data.get('password')
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        
-        # Validate required fields
-        if not username:
-            return jsonify({'error': 'Username is required'}), 400
-        if not password:
-            return jsonify({'error': 'Password is required'}), 400
-        if not first_name:
-            return jsonify({'error': 'First name is required'}), 400
-        if not last_name:
-            return jsonify({'error': 'Last name is required'}), 400
-        
-        # Create user
+
         user = UserService.create_user(
-            username=username,
-            password=password,
-            first_name=first_name,
-            last_name=last_name
+            username=data.get('username'),
+            password=data.get('password'),
+            first_name=data.get('first_name'),
+            last_name=data.get('last_name')
         )
         
         # Generate JWT token
         access_token = create_access_token(identity=str(user.id))
         
         return jsonify({
-            'message': 'User registered successfully',
             'access_token': access_token,
             'user': user.to_dict()
         }), 201
@@ -103,7 +86,6 @@ def login():
         access_token = create_access_token(identity=str(user.id))
         
         return jsonify({
-            'message': 'Login successful',
             'access_token': access_token,
             'user': user.to_dict()
         }), 200
