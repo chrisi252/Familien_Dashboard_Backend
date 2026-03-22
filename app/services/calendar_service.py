@@ -25,9 +25,9 @@ class CalendarService:
             db.session.add(event)
             db.session.commit()
             return event
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            raise e
+            raise
 
     @staticmethod
     def get_events_for_user(family_id, user_id):
@@ -71,9 +71,9 @@ class CalendarService:
                     setattr(event, key, value)
             db.session.commit()
             return event
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            raise e
+            raise
 
     @staticmethod
     def delete_event(event_id, user_id):
@@ -85,9 +85,9 @@ class CalendarService:
         try:
             db.session.delete(event)
             db.session.commit()
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            raise e
+            raise
 
     @staticmethod
     def set_visibility(event_id, user_id, visible_user_ids):
@@ -104,6 +104,6 @@ class CalendarService:
                 db.session.add(entry)
             db.session.commit()
             return event
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            raise e
+            raise
