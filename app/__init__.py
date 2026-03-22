@@ -24,7 +24,7 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # JWT Konfiguration
-    app.config['JWT_SECRET_KEY'] = 'your-secret-key'  # Aus .env laden!
+    app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')  # Aus .env laden!
     jwt = JWTManager(app)
 
     # Extensions mit app verbinden
@@ -32,10 +32,11 @@ def create_app():
     migrate.init_app(app, db)
 
     # Blueprints registrieren
-    from app.routes import main_bp, example_bp, user_bp, family_bp
+    from app.routes import main_bp, example_bp, user_bp, family_bp, calendar_bp
     app.register_blueprint(main_bp)
     app.register_blueprint(example_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(family_bp)
+    app.register_blueprint(calendar_bp)
 
     return app
