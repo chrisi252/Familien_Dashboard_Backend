@@ -114,6 +114,14 @@ class FamilyService:
             raise
 
     @staticmethod
+    def is_member(user_id, family_id):
+        """Check if a user is member of a family"""
+        return UserFamilyRole.query.filter_by(
+            user_id=user_id,
+            family_id=family_id
+        ).first() is not None
+
+    @staticmethod
     def get_family_members(family_id):
         """Get all members of a family with their roles"""
         family = Family.query.get(family_id)

@@ -30,10 +30,7 @@ def create_family():
         
         family = FamilyService.create_family(family_name, current_user_id)
         
-        return jsonify({
-            'message': 'Family created successfully',
-            'family': family.to_dict()
-        }), 201
+        return jsonify(family.to_dict()), 201
         
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
@@ -59,10 +56,7 @@ def join_family(family_id):
             family_id
         )
         
-        return jsonify({
-            'message': 'Joined family successfully',
-            'user_family_role': user_family_role.to_dict()
-        }), 200
+        return jsonify(user_family_role.to_dict()), 200
         
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
@@ -87,7 +81,7 @@ def get_families():
             for role in user_family_roles
         ]
         
-        return jsonify({'families': families}), 200
+        return jsonify(families), 200
         
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
@@ -100,12 +94,16 @@ def get_families():
 def get_family(family_id):
     """Get family details with members"""
     try:
+        current_user_id = int(get_jwt_identity())
         family = FamilyService.get_family_by_id(family_id)
         if not family:
             return jsonify({'error': 'Family not found'}), 404
-        
+
+        if not FamilyService.is_member(current_user_id, family_id):
+            return jsonify({'error': 'Access denied'}), 403
+
         members = FamilyService.get_family_members(family_id)
-        
+
         return jsonify({
             'family': family.to_dict(),
             'members': [member.to_dict() for member in members]

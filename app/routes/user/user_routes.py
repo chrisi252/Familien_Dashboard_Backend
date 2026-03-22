@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.services import UserService
+from app.services import UserService, FamilyService, RoleService
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 user_bp = Blueprint('user', __name__, url_prefix='/api/users')
@@ -23,35 +23,18 @@ def register():
         data = request.get_json()
         if not data:
             return jsonify({'error': 'No data provided'}), 400
-        
-        username = data.get('username')
-        password = data.get('password')
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        
-        # Validate required fields
-        if not username:
-            return jsonify({'error': 'Username is required'}), 400
-        if not password:
-            return jsonify({'error': 'Password is required'}), 400
-        if not first_name:
-            return jsonify({'error': 'First name is required'}), 400
-        if not last_name:
-            return jsonify({'error': 'Last name is required'}), 400
-        
-        # Create user
+
         user = UserService.create_user(
-            username=username,
-            password=password,
-            first_name=first_name,
-            last_name=last_name
+            username=data.get('username'),
+            password=data.get('password'),
+            first_name=data.get('first_name'),
+            last_name=data.get('last_name')
         )
         
         # Generate JWT token
         access_token = create_access_token(identity=str(user.id))
         
         return jsonify({
-            'message': 'User registered successfully',
             'access_token': access_token,
             'user': user.to_dict()
         }), 201
@@ -101,11 +84,20 @@ def login():
         
         # Generate JWT token
         access_token = create_access_token(identity=str(user.id))
-        
+
+        user_families = FamilyService.get_user_families(user.id)
+        families = [
+            {
+                'family_id': ufr.family_id,
+                'is_admin': RoleService.is_family_admin(user.id, ufr.family_id)
+            }
+            for ufr in user_families
+        ]
+
         return jsonify({
-            'message': 'Login successful',
             'access_token': access_token,
-            'user': user.to_dict()
+            'user': user.to_dict(),
+            'families': families,
         }), 200
         
     except Exception as e:
