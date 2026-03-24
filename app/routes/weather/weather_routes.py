@@ -50,7 +50,7 @@ def update_location(family_id):
 
     Expected JSON body:
     {
-        "city": "München"
+        "city": "Mannheim"
     }
 
     Returns:
