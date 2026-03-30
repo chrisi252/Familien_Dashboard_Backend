@@ -12,10 +12,10 @@ servers:
 
 components:
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token_cookie
 
   schemas:
     User:
@@ -126,19 +126,146 @@ components:
           type: string
           format: date-time
 
+    WeatherLocation:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        family_id:
+          type: integer
+          example: 1
+        city_name:
+          type: string
+          example: Berlin
+        latitude:
+          type: number
+          format: float
+          example: 52.52
+        longitude:
+          type: number
+          format: float
+          example: 13.405
+        updated_at:
+          type: string
+          format: date-time
+
+    WeatherCurrent:
+      type: object
+      properties:
+        temperature:
+          type: number
+          format: float
+          example: 18.5
+        apparent_temperature:
+          type: number
+          format: float
+          example: 16.2
+        humidity:
+          type: integer
+          example: 65
+        wind_speed:
+          type: number
+          format: float
+          example: 12.3
+        weather_code:
+          type: integer
+          example: 1
+        weather_description:
+          type: string
+          example: Mainly clear
+
+    WeatherForecastDay:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2026-04-01"
+        weather_code:
+          type: integer
+          example: 3
+        weather_description:
+          type: string
+          example: Overcast
+        temperature_max:
+          type: number
+          format: float
+          example: 22.1
+        temperature_min:
+          type: number
+          format: float
+          example: 10.4
+
+    WeatherResponse:
+      type: object
+      properties:
+        location:
+          $ref: "#/components/schemas/WeatherLocation"
+        current:
+          $ref: "#/components/schemas/WeatherCurrent"
+        forecast:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeatherForecastDay"
+
+    WidgetPermission:
+      type: object
+      properties:
+        role_name:
+          type: string
+          example: Familyadmin
+        can_view:
+          type: boolean
+          example: true
+        can_edit:
+          type: boolean
+          example: true
+
+    Widget:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        family_id:
+          type: integer
+          example: 1
+        widget_type_id:
+          type: integer
+          example: 1
+        widget_key:
+          type: string
+          example: weather
+        display_name:
+          type: string
+          example: Wetter
+        description:
+          type: string
+          example: Zeigt das aktuelle Wetter an
+        is_enabled:
+          type: boolean
+          example: true
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/WidgetPermission"
+
     AuthResponse:
       type: object
       properties:
-        access_token:
+        message:
           type: string
+          example: User registered successfully
         user:
           $ref: "#/components/schemas/User"
 
     AuthLoginResponse:
       type: object
       properties:
-        access_token:
+        message:
           type: string
+          example: Login successful
         user:
           $ref: "#/components/schemas/User"
         families:
@@ -208,6 +335,7 @@ paths:
   /api/users/register:
     post:
       summary: Register a new user
+      description: JWT is set as an HttpOnly cookie in the response.
       tags: [Users]
       requestBody:
         required: true
@@ -232,7 +360,7 @@ paths:
                   example: Doe
       responses:
         "201":
-          description: User registered successfully
+          description: User registered successfully. JWT cookie is set.
           content:
             application/json:
               schema:
@@ -253,6 +381,7 @@ paths:
   /api/users/login:
     post:
       summary: Log in with username and password
+      description: JWT is set as an HttpOnly cookie in the response.
       tags: [Users]
       requestBody:
         required: true
@@ -271,7 +400,7 @@ paths:
                   example: secret123
       responses:
         "200":
-          description: Login successful
+          description: Login successful. JWT cookie is set.
           content:
             application/json:
               schema:
@@ -306,7 +435,7 @@ paths:
       summary: Get the currently authenticated user's profile
       tags: [Users]
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       responses:
         "200":
           description: User profile
@@ -327,12 +456,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/users/logout:
+    post:
+      summary: Logout — clears the JWT cookie
+      tags: [Users]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logout erfolgreich
+
   /api/families:
     get:
       summary: Get all families the authenticated user belongs to
       tags: [Families]
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       responses:
         "200":
           description: List of families with roles
@@ -367,7 +514,7 @@ paths:
       description: The authenticated user is automatically assigned the Familyadmin role.
       tags: [Families]
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -405,7 +552,7 @@ paths:
       description: Only accessible to members of the family.
       tags: [Families]
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - name: family_id
           in: path
@@ -450,7 +597,7 @@ paths:
       description: Cascades deletion to all related widgets, todos, and user roles.
       tags: [Families]
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - name: family_id
           in: path
@@ -483,7 +630,7 @@ paths:
       description: The authenticated user is added with the Guest role by default.
       tags: [Families]
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - name: family_id
           in: path
@@ -510,12 +657,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/families/{family_id}/widgets:
+    get:
+      summary: Get all widgets for a family
+      description: Returns all widgets with their role permissions. Requires Familyadmin role.
+      tags: [Widgets]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: family_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of widgets with permissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  widgets:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Widget"
+        "403":
+          description: Not a family admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/calendar/:
     post:
       summary: Create a new calendar event
       tags: [Calendar]
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -579,7 +764,7 @@ paths:
       description: Returns events that are public to the family, created by the user, or explicitly shared with the user.
       tags: [Calendar]
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - name: family_id
           in: path
@@ -607,7 +792,7 @@ paths:
       summary: Get a single calendar event by ID
       tags: [Calendar]
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - name: event_id
           in: path
@@ -639,7 +824,7 @@ paths:
       description: Only the creator of the event can update it.
       tags: [Calendar]
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - name: event_id
           in: path
@@ -697,7 +882,7 @@ paths:
       description: Only the creator of the event can delete it.
       tags: [Calendar]
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - name: event_id
           in: path
@@ -730,7 +915,7 @@ paths:
       description: Only the creator can set visibility. Replaces the entire visibility list.
       tags: [Calendar]
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - name: event_id
           in: path
@@ -765,6 +950,148 @@ paths:
                 $ref: "#/components/schemas/Error"
         "500":
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/weather/{family_id}:
+    get:
+      summary: Get current weather and 7-day forecast for a family
+      description: Returns weather data for the family's configured location. Every family member can call this endpoint.
+      tags: [Weather]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: family_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Weather data with current conditions and 7-day forecast
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not a member of this family
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "502":
+          description: Weather API unreachable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/weather/{family_id}/location:
+    get:
+      summary: Get the configured weather location for a family
+      description: Every family member can call this endpoint.
+      tags: [Weather]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: family_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Current weather location configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  location:
+                    $ref: "#/components/schemas/WeatherLocation"
+        "403":
+          description: Not a member of this family
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      summary: Update the weather location for a family
+      description: Requires Familyadmin role. Geocodes the city name to get coordinates.
+      tags: [Weather]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: family_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [city]
+              properties:
+                city:
+                  type: string
+                  example: Mannheim
+      responses:
+        "200":
+          description: Location updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Ort erfolgreich aktualisiert
+                  location:
+                    $ref: "#/components/schemas/WeatherLocation"
+        "400":
+          description: Missing city field
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not a family admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "502":
+          description: Geocoding API unreachable
           content:
             application/json:
               schema:
