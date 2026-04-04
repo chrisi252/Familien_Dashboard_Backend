@@ -1,0 +1,729 @@
+{
+  "configuration" : { },
+  "description" : "C4-Architekturmodell des Familien-Dashboard Backends",
+  "documentation" : { },
+  "id" : 1,
+  "lastModifiedDate" : "2026-04-04T19:10:13Z",
+  "model" : {
+    "people" : [ {
+      "description" : "Erstellt und verwaltet eine Familie. Kann Berechtigungen und Layout ändern.",
+      "id" : "1",
+      "name" : "Familyadmin",
+      "properties" : {
+        "structurizr.dsl.identifier" : "familyadmin"
+      },
+      "relationships" : [ {
+        "description" : "Nutzt",
+        "destinationId" : "5",
+        "id" : "24",
+        "sourceId" : "1",
+        "tags" : "Relationship",
+        "technology" : "Browser"
+      }, {
+        "description" : "Nutzt",
+        "destinationId" : "4",
+        "id" : "25",
+        "linkedRelationshipId" : "24",
+        "sourceId" : "1",
+        "technology" : "Browser"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Familienmitglied mit eingeschränkten Rechten (can_view, kein can_edit).",
+      "id" : "2",
+      "name" : "Gast",
+      "properties" : {
+        "structurizr.dsl.identifier" : "guest"
+      },
+      "relationships" : [ {
+        "description" : "Nutzt",
+        "destinationId" : "5",
+        "id" : "26",
+        "sourceId" : "2",
+        "tags" : "Relationship",
+        "technology" : "Browser"
+      }, {
+        "description" : "Nutzt",
+        "destinationId" : "4",
+        "id" : "27",
+        "linkedRelationshipId" : "26",
+        "sourceId" : "2",
+        "technology" : "Browser"
+      } ],
+      "tags" : "Element,Person"
+    } ],
+    "softwareSystems" : [ {
+      "description" : "Liefert Wetterdaten, Vorhersagen und Geocoding.",
+      "documentation" : { },
+      "id" : "3",
+      "name" : "OpenWeatherMap API",
+      "properties" : {
+        "structurizr.dsl.identifier" : "openweathermap"
+      },
+      "tags" : "Element,Software System,External"
+    }, {
+      "containers" : [ {
+        "description" : "Single Page Application für das Dashboard.",
+        "documentation" : { },
+        "id" : "5",
+        "name" : "Frontend SPA",
+        "properties" : {
+          "structurizr.dsl.identifier" : "frontend"
+        },
+        "relationships" : [ {
+          "description" : "API Requests",
+          "destinationId" : "6",
+          "id" : "28",
+          "sourceId" : "5",
+          "tags" : "Relationship",
+          "technology" : "HTTPS / JSON + JWT Cookie"
+        } ],
+        "tags" : "Element,Container,Browser",
+        "technology" : "React / TypeScript"
+      }, {
+        "components" : [ {
+          "description" : "Register, Login, Profile, Logout",
+          "documentation" : { },
+          "id" : "7",
+          "name" : "User Routes",
+          "properties" : {
+            "structurizr.dsl.identifier" : "userRoutes"
+          },
+          "relationships" : [ {
+            "description" : "JWT erstellen/löschen",
+            "destinationId" : "22",
+            "id" : "32",
+            "sourceId" : "7",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Delegiert an",
+            "destinationId" : "13",
+            "id" : "37",
+            "sourceId" : "7",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Familien bei Login laden",
+            "destinationId" : "14",
+            "id" : "38",
+            "sourceId" : "7",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Admin-Status prüfen",
+            "destinationId" : "18",
+            "id" : "39",
+            "sourceId" : "7",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Flask Blueprint"
+        }, {
+          "description" : "Family CRUD, Join",
+          "documentation" : { },
+          "id" : "8",
+          "name" : "Family Routes",
+          "properties" : {
+            "structurizr.dsl.identifier" : "familyRoutes"
+          },
+          "relationships" : [ {
+            "description" : "JWT + Admin-Check",
+            "destinationId" : "12",
+            "id" : "33",
+            "sourceId" : "8",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Delegiert an",
+            "destinationId" : "14",
+            "id" : "40",
+            "sourceId" : "8",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Flask Blueprint"
+        }, {
+          "description" : "Widget-Liste, Permissions, Layout",
+          "documentation" : { },
+          "id" : "9",
+          "name" : "Widget Routes",
+          "properties" : {
+            "structurizr.dsl.identifier" : "widgetRoutes"
+          },
+          "relationships" : [ {
+            "description" : "JWT + Admin-Check",
+            "destinationId" : "12",
+            "id" : "34",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Delegiert an",
+            "destinationId" : "15",
+            "id" : "41",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Flask Blueprint"
+        }, {
+          "description" : "Todo CRUD",
+          "documentation" : { },
+          "id" : "10",
+          "name" : "Todo Routes",
+          "properties" : {
+            "structurizr.dsl.identifier" : "todoRoutes"
+          },
+          "relationships" : [ {
+            "description" : "JWT + Widget-Permission-Check",
+            "destinationId" : "12",
+            "id" : "35",
+            "sourceId" : "10",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Delegiert an",
+            "destinationId" : "16",
+            "id" : "42",
+            "sourceId" : "10",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Flask Blueprint (Widget)"
+        }, {
+          "description" : "Wetter abrufen, Standort ändern",
+          "documentation" : { },
+          "id" : "11",
+          "name" : "Weather Routes",
+          "properties" : {
+            "structurizr.dsl.identifier" : "weatherRoutes"
+          },
+          "relationships" : [ {
+            "description" : "JWT + Widget-Permission-Check",
+            "destinationId" : "12",
+            "id" : "36",
+            "sourceId" : "11",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Delegiert an",
+            "destinationId" : "17",
+            "id" : "43",
+            "sourceId" : "11",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Flask Blueprint (Widget)"
+        }, {
+          "description" : "JWT-Validierung, require_family_admin, require_widget_permission",
+          "documentation" : { },
+          "id" : "12",
+          "name" : "Auth & Permission Decorators",
+          "properties" : {
+            "structurizr.dsl.identifier" : "authDecorators"
+          },
+          "relationships" : [ {
+            "description" : "Prüft Membership + Permissions",
+            "destinationId" : "21",
+            "id" : "50",
+            "sourceId" : "12",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python Decorators"
+        }, {
+          "description" : "User-Erstellung, Passwort-Validierung",
+          "documentation" : { },
+          "id" : "13",
+          "name" : "UserService",
+          "properties" : {
+            "structurizr.dsl.identifier" : "userService"
+          },
+          "relationships" : [ {
+            "description" : "Liest/Schreibt User",
+            "destinationId" : "21",
+            "id" : "44",
+            "sourceId" : "13",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Service Layer"
+        }, {
+          "description" : "Family-Erstellung mit Auto-Widget-Provisioning, Mitgliederverwaltung",
+          "documentation" : { },
+          "id" : "14",
+          "name" : "FamilyService",
+          "properties" : {
+            "structurizr.dsl.identifier" : "familyService"
+          },
+          "relationships" : [ {
+            "description" : "Liest/Schreibt Family, UserFamilyRole, FamilyWidget, WidgetUserPermission",
+            "destinationId" : "21",
+            "id" : "45",
+            "sourceId" : "14",
+            "tags" : "Relationship"
+          }, {
+            "description" : "get_default_permissions() bei Family-Erstellung",
+            "destinationId" : "19",
+            "id" : "52",
+            "sourceId" : "14",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Service Layer"
+        }, {
+          "description" : "Widget-Liste, Permission-Updates, Layout",
+          "documentation" : { },
+          "id" : "15",
+          "name" : "WidgetService",
+          "properties" : {
+            "structurizr.dsl.identifier" : "widgetService"
+          },
+          "relationships" : [ {
+            "description" : "Liest/Schreibt FamilyWidget, WidgetUserPermission",
+            "destinationId" : "21",
+            "id" : "46",
+            "sourceId" : "15",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Service Layer"
+        }, {
+          "description" : "Todo CRUD",
+          "documentation" : { },
+          "id" : "16",
+          "name" : "TodoService",
+          "properties" : {
+            "structurizr.dsl.identifier" : "todoService"
+          },
+          "relationships" : [ {
+            "description" : "Liest/Schreibt Todo",
+            "destinationId" : "21",
+            "id" : "47",
+            "sourceId" : "16",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Service Layer"
+        }, {
+          "description" : "Geocoding, Wetter-API-Aufrufe",
+          "documentation" : { },
+          "id" : "17",
+          "name" : "WeatherService",
+          "properties" : {
+            "structurizr.dsl.identifier" : "weatherService"
+          },
+          "relationships" : [ {
+            "description" : "Liest/Schreibt FamilyWeatherConfig",
+            "destinationId" : "21",
+            "id" : "48",
+            "sourceId" : "17",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Current Weather, Forecast, Geocoding",
+            "destinationId" : "3",
+            "id" : "51",
+            "sourceId" : "17",
+            "tags" : "Relationship",
+            "technology" : "HTTPS"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Service Layer"
+        }, {
+          "description" : "Rollenabfragen (Familyadmin, Guest)",
+          "documentation" : { },
+          "id" : "18",
+          "name" : "RoleService",
+          "properties" : {
+            "structurizr.dsl.identifier" : "roleService"
+          },
+          "relationships" : [ {
+            "description" : "Liest UserFamilyRole",
+            "destinationId" : "21",
+            "id" : "49",
+            "sourceId" : "18",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Service Layer"
+        }, {
+          "description" : "In-Memory Registry + sync_to_db() provisioniert Widgets für alle Familien",
+          "documentation" : { },
+          "id" : "19",
+          "name" : "Widget Registry",
+          "properties" : {
+            "structurizr.dsl.identifier" : "widgetRegistry"
+          },
+          "relationships" : [ {
+            "description" : "Verwaltet registrierte Widgets",
+            "destinationId" : "20",
+            "id" : "53",
+            "sourceId" : "19",
+            "tags" : "Relationship"
+          }, {
+            "description" : "sync_to_db() erstellt WidgetType + FamilyWidget + Permissions",
+            "destinationId" : "21",
+            "id" : "54",
+            "sourceId" : "19",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Python Module"
+        }, {
+          "description" : "Abstrakte Basisklasse mit get_default_permissions()",
+          "documentation" : { },
+          "id" : "20",
+          "name" : "BaseWidget",
+          "properties" : {
+            "structurizr.dsl.identifier" : "baseWidget"
+          },
+          "tags" : "Element,Component",
+          "technology" : "ABC"
+        }, {
+          "description" : "User, Family, Role, UserFamilyRole, WidgetType, FamilyWidget, WidgetUserPermission, Todo, FamilyWeatherConfig",
+          "documentation" : { },
+          "id" : "21",
+          "name" : "SQLAlchemy Models",
+          "properties" : {
+            "structurizr.dsl.identifier" : "models"
+          },
+          "relationships" : [ {
+            "description" : "ORM Queries",
+            "destinationId" : "23",
+            "id" : "55",
+            "sourceId" : "21",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "SQLAlchemy ORM"
+        }, {
+          "description" : "Cookie-basierte JWT-Authentifizierung",
+          "documentation" : { },
+          "id" : "22",
+          "name" : "JWT Manager",
+          "properties" : {
+            "structurizr.dsl.identifier" : "jwtManager"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Flask-JWT-Extended"
+        } ],
+        "description" : "REST API mit JWT-Auth, Widget-System und Permissions.",
+        "documentation" : { },
+        "id" : "6",
+        "name" : "Backend API",
+        "properties" : {
+          "structurizr.dsl.identifier" : "backend"
+        },
+        "relationships" : [ {
+          "description" : "Liest/Schreibt",
+          "destinationId" : "23",
+          "id" : "29",
+          "sourceId" : "6",
+          "tags" : "Relationship",
+          "technology" : "SQLAlchemy / PostgreSQL"
+        }, {
+          "description" : "Wetter + Geocoding",
+          "destinationId" : "3",
+          "id" : "30",
+          "sourceId" : "6",
+          "tags" : "Relationship",
+          "technology" : "HTTPS / JSON"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Python / Flask"
+      }, {
+        "description" : "Speichert User, Familien, Widgets, Permissions, Todos, Wetter-Konfiguration.",
+        "documentation" : { },
+        "id" : "23",
+        "name" : "PostgreSQL",
+        "properties" : {
+          "structurizr.dsl.identifier" : "database"
+        },
+        "tags" : "Element,Container,Database",
+        "technology" : "PostgreSQL 16"
+      } ],
+      "description" : "Webbasiertes Dashboard für Familien mit Widgets (Todo, Wetter).",
+      "documentation" : { },
+      "id" : "4",
+      "name" : "Familien-Dashboard",
+      "properties" : {
+        "structurizr.dsl.identifier" : "familienDashboard"
+      },
+      "relationships" : [ {
+        "description" : "Wetter + Geocoding",
+        "destinationId" : "3",
+        "id" : "31",
+        "linkedRelationshipId" : "30",
+        "sourceId" : "4",
+        "technology" : "HTTPS / JSON"
+      } ],
+      "tags" : "Element,Software System"
+    } ]
+  },
+  "name" : "Familien-Dashboard",
+  "properties" : {
+    "structurizr.inspection.error" : "26",
+    "structurizr.dsl" : "d29ya3NwYWNlICJGYW1pbGllbi1EYXNoYm9hcmQiICJDNC1BcmNoaXRla3R1cm1vZGVsbCBkZXMgRmFtaWxpZW4tRGFzaGJvYXJkIEJhY2tlbmRzIiB7CgogICAgbW9kZWwgewogICAgICAgICMgUGVyc29uZW4KICAgICAgICBmYW1pbHlhZG1pbiA9IHBlcnNvbiAiRmFtaWx5YWRtaW4iICJFcnN0ZWxsdCB1bmQgdmVyd2FsdGV0IGVpbmUgRmFtaWxpZS4gS2FubiBCZXJlY2h0aWd1bmdlbiB1bmQgTGF5b3V0IMOkbmRlcm4uIgogICAgICAgIGd1ZXN0ID0gcGVyc29uICJHYXN0IiAiRmFtaWxpZW5taXRnbGllZCBtaXQgZWluZ2VzY2hyw6Rua3RlbiBSZWNodGVuIChjYW5fdmlldywga2VpbiBjYW5fZWRpdCkuIgoKICAgICAgICAjIEV4dGVybmUgU3lzdGVtZQogICAgICAgIG9wZW53ZWF0aGVybWFwID0gc29mdHdhcmVTeXN0ZW0gIk9wZW5XZWF0aGVyTWFwIEFQSSIgIkxpZWZlcnQgV2V0dGVyZGF0ZW4sIFZvcmhlcnNhZ2VuIHVuZCBHZW9jb2RpbmcuIiAiRXh0ZXJuYWwiCgogICAgICAgICMgRmFtaWxpZW4tRGFzaGJvYXJkCiAgICAgICAgZmFtaWxpZW5EYXNoYm9hcmQgPSBzb2Z0d2FyZVN5c3RlbSAiRmFtaWxpZW4tRGFzaGJvYXJkIiAiV2ViYmFzaWVydGVzIERhc2hib2FyZCBmw7xyIEZhbWlsaWVuIG1pdCBXaWRnZXRzIChUb2RvLCBXZXR0ZXIpLiIgewoKICAgICAgICAgICAgIyBDb250YWluZXIKICAgICAgICAgICAgZnJvbnRlbmQgPSBjb250YWluZXIgIkZyb250ZW5kIFNQQSIgIlNpbmdsZSBQYWdlIEFwcGxpY2F0aW9uIGbDvHIgZGFzIERhc2hib2FyZC4iICJSZWFjdCAvIFR5cGVTY3JpcHQiICJCcm93c2VyIgoKICAgICAgICAgICAgYmFja2VuZCA9IGNvbnRhaW5lciAiQmFja2VuZCBBUEkiICJSRVNUIEFQSSBtaXQgSldULUF1dGgsIFdpZGdldC1TeXN0ZW0gdW5kIFBlcm1pc3Npb25zLiIgIlB5dGhvbiAvIEZsYXNrIiB7CiAgICAgICAgICAgICAgICAjIFJvdXRlcwogICAgICAgICAgICAgICAgdXNlclJvdXRlcyA9IGNvbXBvbmVudCAiVXNlciBSb3V0ZXMiICJSZWdpc3RlciwgTG9naW4sIFByb2ZpbGUsIExvZ291dCIgIkZsYXNrIEJsdWVwcmludCIKICAgICAgICAgICAgICAgIGZhbWlseVJvdXRlcyA9IGNvbXBvbmVudCAiRmFtaWx5IFJvdXRlcyIgIkZhbWlseSBDUlVELCBKb2luIiAiRmxhc2sgQmx1ZXByaW50IgogICAgICAgICAgICAgICAgd2lkZ2V0Um91dGVzID0gY29tcG9uZW50ICJXaWRnZXQgUm91dGVzIiAiV2lkZ2V0LUxpc3RlLCBQZXJtaXNzaW9ucywgTGF5b3V0IiAiRmxhc2sgQmx1ZXByaW50IgogICAgICAgICAgICAgICAgdG9kb1JvdXRlcyA9IGNvbXBvbmVudCAiVG9kbyBSb3V0ZXMiICJUb2RvIENSVUQiICJGbGFzayBCbHVlcHJpbnQgKFdpZGdldCkiCiAgICAgICAgICAgICAgICB3ZWF0aGVyUm91dGVzID0gY29tcG9uZW50ICJXZWF0aGVyIFJvdXRlcyIgIldldHRlciBhYnJ1ZmVuLCBTdGFuZG9ydCDDpG5kZXJuIiAiRmxhc2sgQmx1ZXByaW50IChXaWRnZXQpIgoKICAgICAgICAgICAgICAgICMgRGVjb3JhdG9ycwogICAgICAgICAgICAgICAgYXV0aERlY29yYXRvcnMgPSBjb21wb25lbnQgIkF1dGggJiBQZXJtaXNzaW9uIERlY29yYXRvcnMiICJKV1QtVmFsaWRpZXJ1bmcsIHJlcXVpcmVfZmFtaWx5X2FkbWluLCByZXF1aXJlX3dpZGdldF9wZXJtaXNzaW9uIiAiUHl0aG9uIERlY29yYXRvcnMiCgogICAgICAgICAgICAgICAgIyBTZXJ2aWNlcwogICAgICAgICAgICAgICAgdXNlclNlcnZpY2UgPSBjb21wb25lbnQgIlVzZXJTZXJ2aWNlIiAiVXNlci1FcnN0ZWxsdW5nLCBQYXNzd29ydC1WYWxpZGllcnVuZyIgIlNlcnZpY2UgTGF5ZXIiCiAgICAgICAgICAgICAgICBmYW1pbHlTZXJ2aWNlID0gY29tcG9uZW50ICJGYW1pbHlTZXJ2aWNlIiAiRmFtaWx5LUVyc3RlbGx1bmcgbWl0IEF1dG8tV2lkZ2V0LVByb3Zpc2lvbmluZywgTWl0Z2xpZWRlcnZlcndhbHR1bmciICJTZXJ2aWNlIExheWVyIgogICAgICAgICAgICAgICAgd2lkZ2V0U2VydmljZSA9IGNvbXBvbmVudCAiV2lkZ2V0U2VydmljZSIgIldpZGdldC1MaXN0ZSwgUGVybWlzc2lvbi1VcGRhdGVzLCBMYXlvdXQiICJTZXJ2aWNlIExheWVyIgogICAgICAgICAgICAgICAgdG9kb1NlcnZpY2UgPSBjb21wb25lbnQgIlRvZG9TZXJ2aWNlIiAiVG9kbyBDUlVEIiAiU2VydmljZSBMYXllciIKICAgICAgICAgICAgICAgIHdlYXRoZXJTZXJ2aWNlID0gY29tcG9uZW50ICJXZWF0aGVyU2VydmljZSIgIkdlb2NvZGluZywgV2V0dGVyLUFQSS1BdWZydWZlIiAiU2VydmljZSBMYXllciIKICAgICAgICAgICAgICAgIHJvbGVTZXJ2aWNlID0gY29tcG9uZW50ICJSb2xlU2VydmljZSIgIlJvbGxlbmFiZnJhZ2VuIChGYW1pbHlhZG1pbiwgR3Vlc3QpIiAiU2VydmljZSBMYXllciIKCiAgICAgICAgICAgICAgICAjIFdpZGdldCBTeXN0ZW0KICAgICAgICAgICAgICAgIHdpZGdldFJlZ2lzdHJ5ID0gY29tcG9uZW50ICJXaWRnZXQgUmVnaXN0cnkiICJJbi1NZW1vcnkgUmVnaXN0cnkgKyBzeW5jX3RvX2RiKCkgcHJvdmlzaW9uaWVydCBXaWRnZXRzIGbDvHIgYWxsZSBGYW1pbGllbiIgIlB5dGhvbiBNb2R1bGUiCiAgICAgICAgICAgICAgICBiYXNlV2lkZ2V0ID0gY29tcG9uZW50ICJCYXNlV2lkZ2V0IiAiQWJzdHJha3RlIEJhc2lza2xhc3NlIG1pdCBnZXRfZGVmYXVsdF9wZXJtaXNzaW9ucygpIiAiQUJDIgoKICAgICAgICAgICAgICAgICMgTW9kZWxzCiAgICAgICAgICAgICAgICBtb2RlbHMgPSBjb21wb25lbnQgIlNRTEFsY2hlbXkgTW9kZWxzIiAiVXNlciwgRmFtaWx5LCBSb2xlLCBVc2VyRmFtaWx5Um9sZSwgV2lkZ2V0VHlwZSwgRmFtaWx5V2lkZ2V0LCBXaWRnZXRVc2VyUGVybWlzc2lvbiwgVG9kbywgRmFtaWx5V2VhdGhlckNvbmZpZyIgIlNRTEFsY2hlbXkgT1JNIgoKICAgICAgICAgICAgICAgICMgSldUCiAgICAgICAgICAgICAgICBqd3RNYW5hZ2VyID0gY29tcG9uZW50ICJKV1QgTWFuYWdlciIgIkNvb2tpZS1iYXNpZXJ0ZSBKV1QtQXV0aGVudGlmaXppZXJ1bmciICJGbGFzay1KV1QtRXh0ZW5kZWQiCiAgICAgICAgICAgIH0KCiAgICAgICAgICAgIGRhdGFiYXNlID0gY29udGFpbmVyICJQb3N0Z3JlU1FMIiAiU3BlaWNoZXJ0IFVzZXIsIEZhbWlsaWVuLCBXaWRnZXRzLCBQZXJtaXNzaW9ucywgVG9kb3MsIFdldHRlci1Lb25maWd1cmF0aW9uLiIgIlBvc3RncmVTUUwgMTYiICJEYXRhYmFzZSIKICAgICAgICB9CgogICAgICAgICMgQmV6aWVodW5nZW4g4oCUIFBlcnNvbmVuCiAgICAgICAgZmFtaWx5YWRtaW4gLT4gZnJvbnRlbmQgIk51dHp0IiAiQnJvd3NlciIKICAgICAgICBndWVzdCAtPiBmcm9udGVuZCAiTnV0enQiICJCcm93c2VyIgogICAgICAgIGZyb250ZW5kIC0+IGJhY2tlbmQgIkFQSSBSZXF1ZXN0cyIgIkhUVFBTIC8gSlNPTiArIEpXVCBDb29raWUiCgogICAgICAgICMgQmV6aWVodW5nZW4g4oCUIENvbnRhaW5lcgogICAgICAgIGJhY2tlbmQgLT4gZGF0YWJhc2UgIkxpZXN0L1NjaHJlaWJ0IiAiU1FMQWxjaGVteSAvIFBvc3RncmVTUUwiCiAgICAgICAgYmFja2VuZCAtPiBvcGVud2VhdGhlcm1hcCAiV2V0dGVyICsgR2VvY29kaW5nIiAiSFRUUFMgLyBKU09OIgoKICAgICAgICAjIEJlemllaHVuZ2VuIOKAlCBLb21wb25lbnRlbiAoUm91dGVzIOKGkiBEZWNvcmF0b3JzKQogICAgICAgIHVzZXJSb3V0ZXMgLT4gand0TWFuYWdlciAiSldUIGVyc3RlbGxlbi9sw7ZzY2hlbiIKICAgICAgICBmYW1pbHlSb3V0ZXMgLT4gYXV0aERlY29yYXRvcnMgIkpXVCArIEFkbWluLUNoZWNrIgogICAgICAgIHdpZGdldFJvdXRlcyAtPiBhdXRoRGVjb3JhdG9ycyAiSldUICsgQWRtaW4tQ2hlY2siCiAgICAgICAgdG9kb1JvdXRlcyAtPiBhdXRoRGVjb3JhdG9ycyAiSldUICsgV2lkZ2V0LVBlcm1pc3Npb24tQ2hlY2siCiAgICAgICAgd2VhdGhlclJvdXRlcyAtPiBhdXRoRGVjb3JhdG9ycyAiSldUICsgV2lkZ2V0LVBlcm1pc3Npb24tQ2hlY2siCgogICAgICAgICMgQmV6aWVodW5nZW4g4oCUIEtvbXBvbmVudGVuIChSb3V0ZXMg4oaSIFNlcnZpY2VzKQogICAgICAgIHVzZXJSb3V0ZXMgLT4gdXNlclNlcnZpY2UgIkRlbGVnaWVydCBhbiIKICAgICAgICB1c2VyUm91dGVzIC0+IGZhbWlseVNlcnZpY2UgIkZhbWlsaWVuIGJlaSBMb2dpbiBsYWRlbiIKICAgICAgICB1c2VyUm91dGVzIC0+IHJvbGVTZXJ2aWNlICJBZG1pbi1TdGF0dXMgcHLDvGZlbiIKICAgICAgICBmYW1pbHlSb3V0ZXMgLT4gZmFtaWx5U2VydmljZSAiRGVsZWdpZXJ0IGFuIgogICAgICAgIHdpZGdldFJvdXRlcyAtPiB3aWRnZXRTZXJ2aWNlICJEZWxlZ2llcnQgYW4iCiAgICAgICAgdG9kb1JvdXRlcyAtPiB0b2RvU2VydmljZSAiRGVsZWdpZXJ0IGFuIgogICAgICAgIHdlYXRoZXJSb3V0ZXMgLT4gd2VhdGhlclNlcnZpY2UgIkRlbGVnaWVydCBhbiIKCiAgICAgICAgIyBCZXppZWh1bmdlbiDigJQgU2VydmljZXMg4oaSIE1vZGVscy9EQgogICAgICAgIHVzZXJTZXJ2aWNlIC0+IG1vZGVscyAiTGllc3QvU2NocmVpYnQgVXNlciIKICAgICAgICBmYW1pbHlTZXJ2aWNlIC0+IG1vZGVscyAiTGllc3QvU2NocmVpYnQgRmFtaWx5LCBVc2VyRmFtaWx5Um9sZSwgRmFtaWx5V2lkZ2V0LCBXaWRnZXRVc2VyUGVybWlzc2lvbiIKICAgICAgICB3aWRnZXRTZXJ2aWNlIC0+IG1vZGVscyAiTGllc3QvU2NocmVpYnQgRmFtaWx5V2lkZ2V0LCBXaWRnZXRVc2VyUGVybWlzc2lvbiIKICAgICAgICB0b2RvU2VydmljZSAtPiBtb2RlbHMgIkxpZXN0L1NjaHJlaWJ0IFRvZG8iCiAgICAgICAgd2VhdGhlclNlcnZpY2UgLT4gbW9kZWxzICJMaWVzdC9TY2hyZWlidCBGYW1pbHlXZWF0aGVyQ29uZmlnIgogICAgICAgIHJvbGVTZXJ2aWNlIC0+IG1vZGVscyAiTGllc3QgVXNlckZhbWlseVJvbGUiCiAgICAgICAgYXV0aERlY29yYXRvcnMgLT4gbW9kZWxzICJQcsO8ZnQgTWVtYmVyc2hpcCArIFBlcm1pc3Npb25zIgoKICAgICAgICAjIEJlemllaHVuZ2VuIOKAlCBTZXJ2aWNlcyDihpIgRXh0ZXJuZSBTeXN0ZW1lCiAgICAgICAgd2VhdGhlclNlcnZpY2UgLT4gb3BlbndlYXRoZXJtYXAgIkN1cnJlbnQgV2VhdGhlciwgRm9yZWNhc3QsIEdlb2NvZGluZyIgIkhUVFBTIgoKICAgICAgICAjIEJlemllaHVuZ2VuIOKAlCBXaWRnZXQgU3lzdGVtCiAgICAgICAgZmFtaWx5U2VydmljZSAtPiB3aWRnZXRSZWdpc3RyeSAiZ2V0X2RlZmF1bHRfcGVybWlzc2lvbnMoKSBiZWkgRmFtaWx5LUVyc3RlbGx1bmciCiAgICAgICAgd2lkZ2V0UmVnaXN0cnkgLT4gYmFzZVdpZGdldCAiVmVyd2FsdGV0IHJlZ2lzdHJpZXJ0ZSBXaWRnZXRzIgogICAgICAgIHdpZGdldFJlZ2lzdHJ5IC0+IG1vZGVscyAic3luY190b19kYigpIGVyc3RlbGx0IFdpZGdldFR5cGUgKyBGYW1pbHlXaWRnZXQgKyBQZXJtaXNzaW9ucyIKCiAgICAgICAgIyBCZXppZWh1bmdlbiDigJQgTW9kZWxzIOKGkiBEQgogICAgICAgIG1vZGVscyAtPiBkYXRhYmFzZSAiT1JNIFF1ZXJpZXMiCiAgICB9CgogICAgdmlld3MgewogICAgICAgICMgTGV2ZWwgMTogU3lzdGVtIENvbnRleHQKICAgICAgICBzeXN0ZW1Db250ZXh0IGZhbWlsaWVuRGFzaGJvYXJkICJTeXN0ZW1Db250ZXh0IiB7CiAgICAgICAgICAgIGluY2x1ZGUgKgogICAgICAgICAgICBhdXRvTGF5b3V0CiAgICAgICAgICAgIGRlc2NyaXB0aW9uICJTeXN0ZW1rb250ZXh0OiBGYW1pbGllbi1EYXNoYm9hcmQgbWl0IEJlbnV0emVybiB1bmQgZXh0ZXJuZW4gU3lzdGVtZW4iCiAgICAgICAgfQoKICAgICAgICAjIExldmVsIDI6IENvbnRhaW5lcgogICAgICAgIGNvbnRhaW5lciBmYW1pbGllbkRhc2hib2FyZCAiQ29udGFpbmVycyIgewogICAgICAgICAgICBpbmNsdWRlICoKICAgICAgICAgICAgYXV0b0xheW91dAogICAgICAgICAgICBkZXNjcmlwdGlvbiAiQ29udGFpbmVyLVNpY2h0OiBGcm9udGVuZCwgQmFja2VuZCBBUEksIERhdGVuYmFuayIKICAgICAgICB9CgogICAgICAgICMgTGV2ZWwgMzogQ29tcG9uZW50cwogICAgICAgIGNvbXBvbmVudCBiYWNrZW5kICJDb21wb25lbnRzIiB7CiAgICAgICAgICAgIGluY2x1ZGUgKgogICAgICAgICAgICBhdXRvTGF5b3V0CiAgICAgICAgICAgIGRlc2NyaXB0aW9uICJLb21wb25lbnRlbiBkZXMgQmFja2VuZC1BUEktQ29udGFpbmVycyIKICAgICAgICB9CgogICAgICAgIHN0eWxlcyB7CiAgICAgICAgICAgIGVsZW1lbnQgIlBlcnNvbiIgewogICAgICAgICAgICAgICAgc2hhcGUgUGVyc29uCiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICMwODQyN0IKICAgICAgICAgICAgICAgIGNvbG9yICNmZmZmZmYKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJTb2Z0d2FyZSBTeXN0ZW0iIHsKICAgICAgICAgICAgICAgIGJhY2tncm91bmQgIzExNjhCRAogICAgICAgICAgICAgICAgY29sb3IgI2ZmZmZmZgogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIkV4dGVybmFsIiB7CiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICM5OTk5OTkKICAgICAgICAgICAgICAgIGNvbG9yICNmZmZmZmYKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJDb250YWluZXIiIHsKICAgICAgICAgICAgICAgIGJhY2tncm91bmQgIzQzOERENQogICAgICAgICAgICAgICAgY29sb3IgI2ZmZmZmZgogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIkJyb3dzZXIiIHsKICAgICAgICAgICAgICAgIHNoYXBlIFdlYkJyb3dzZXIKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJEYXRhYmFzZSIgewogICAgICAgICAgICAgICAgc2hhcGUgQ3lsaW5kZXIKICAgICAgICAgICAgICAgIGJhY2tncm91bmQgIzQzOERENQogICAgICAgICAgICAgICAgY29sb3IgI2ZmZmZmZgogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIkNvbXBvbmVudCIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjODVCQkYwCiAgICAgICAgICAgICAgICBjb2xvciAjMDAwMDAwCiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICB9Cgp9",
+    "structurizr.inspection.info" : "0",
+    "structurizr.inspection.ignore" : "0",
+    "structurizr.inspection.warning" : "0"
+  },
+  "views" : {
+    "componentViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "6",
+      "description" : "Komponenten des Backend-API-Containers",
+      "elements" : [ {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "11",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "13",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "14",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "15",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "16",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "17",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "18",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "19",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "20",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "21",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "22",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "23",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "Components",
+      "name" : "Component View: Familien-Dashboard - Backend API",
+      "order" : 3,
+      "relationships" : [ {
+        "id" : "32"
+      }, {
+        "id" : "33"
+      }, {
+        "id" : "34"
+      }, {
+        "id" : "35"
+      }, {
+        "id" : "36"
+      }, {
+        "id" : "37"
+      }, {
+        "id" : "38"
+      }, {
+        "id" : "39"
+      }, {
+        "id" : "40"
+      }, {
+        "id" : "41"
+      }, {
+        "id" : "42"
+      }, {
+        "id" : "43"
+      }, {
+        "id" : "44"
+      }, {
+        "id" : "45"
+      }, {
+        "id" : "46"
+      }, {
+        "id" : "47"
+      }, {
+        "id" : "48"
+      }, {
+        "id" : "49"
+      }, {
+        "id" : "50"
+      }, {
+        "id" : "51"
+      }, {
+        "id" : "52"
+      }, {
+        "id" : "53"
+      }, {
+        "id" : "54"
+      }, {
+        "id" : "55"
+      } ]
+    } ],
+    "configuration" : {
+      "styles" : {
+        "elements" : [ {
+          "shape" : "WebBrowser",
+          "tag" : "Browser"
+        }, {
+          "background" : "#85bbf0",
+          "color" : "#000000",
+          "tag" : "Component"
+        }, {
+          "background" : "#438dd5",
+          "color" : "#ffffff",
+          "tag" : "Container"
+        }, {
+          "background" : "#438dd5",
+          "color" : "#ffffff",
+          "shape" : "Cylinder",
+          "tag" : "Database"
+        }, {
+          "background" : "#999999",
+          "color" : "#ffffff",
+          "tag" : "External"
+        }, {
+          "background" : "#08427b",
+          "color" : "#ffffff",
+          "shape" : "Person",
+          "tag" : "Person"
+        }, {
+          "background" : "#1168bd",
+          "color" : "#ffffff",
+          "tag" : "Software System"
+        } ]
+      },
+      "terminology" : { }
+    },
+    "containerViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Container-Sicht: Frontend, Backend API, Datenbank",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "23",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "Containers",
+      "name" : "Container View: Familien-Dashboard",
+      "order" : 2,
+      "relationships" : [ {
+        "id" : "24"
+      }, {
+        "id" : "26"
+      }, {
+        "id" : "28"
+      }, {
+        "id" : "29"
+      }, {
+        "id" : "30"
+      } ],
+      "softwareSystemId" : "4"
+    } ],
+    "systemContextViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Systemkontext: Familien-Dashboard mit Benutzern und externen Systemen",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "SystemContext",
+      "name" : "System Context View: Familien-Dashboard",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "25"
+      }, {
+        "id" : "27"
+      }, {
+        "id" : "31"
+      } ],
+      "softwareSystemId" : "4"
+    } ]
+  }
+}

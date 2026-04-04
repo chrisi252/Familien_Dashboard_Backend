@@ -139,3 +139,5 @@ JWT als cookie schicken und auf strict setzen
 https://flask.palletsprojects.com/en/stable/deploying/uwsgi/
 
 
+# C4 Model
+- docker run -it --rm -p 8080:8080 -v ./docs:/usr/local/structurizr structurizr/structurizr local
