@@ -4,7 +4,6 @@ from datetime import datetime
 
 
 class Todo(db.Model):
-    """Todo model - Task list for families"""
     __tablename__ = 'todos'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -18,11 +17,9 @@ class Todo(db.Model):
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationships
     family = db.relationship('Family', back_populates='todos')
 
     def to_dict(self):
-        """Convert todo to dictionary"""
         return {
             'id': self.id,
             'family_id': self.family_id,

@@ -4,13 +4,11 @@ from .user import user_bp
 from .familiy import family_bp
 from .widget import widget_bp
 
-# Hauptrouten Blueprint
 main_bp = Blueprint('main', __name__)
 
 
 @main_bp.route("/", methods=['GET'])
 def home():
-    """Hauptseite / Home-Route"""
     return jsonify({
         "status": "success",
         "message": "Familien-Dashboard API aktiv"

@@ -6,17 +6,12 @@ from app.widgets.weather.service import WeatherService
 from app.services.family_service import FamilyService
 from app.utils import require_family_admin
 
-# Blueprint-Name 'weather' muss mit WeatherWidget.key übereinstimmen
 bp = Blueprint('weather', __name__, url_prefix='/api/weather')
 
 
 @bp.route('/<int:family_id>', methods=['GET'])
 @jwt_required()
 def get_weather(family_id):
-    """Get current weather and 5-day forecast for the family's configured location.
-
-    Every family member can call this endpoint.
-    """
     try:
         current_user_id = int(get_jwt_identity())
 
@@ -39,10 +34,6 @@ def get_weather(family_id):
 @bp.route('/<int:family_id>/location', methods=['GET'])
 @jwt_required()
 def get_location(family_id):
-    """Get the currently configured weather location for the family.
-
-    Every family member can call this endpoint.
-    """
     try:
         current_user_id = int(get_jwt_identity())
 
@@ -62,13 +53,6 @@ def get_location(family_id):
 @jwt_required()
 @require_family_admin
 def update_location(family_id):
-    """Update the weather location for the family. Nur für Familyadmin.
-
-    Expected JSON body:
-    {
-        "city": "Mannheim"
-    }
-    """
     try:
         data = request.get_json()
         if not data or not data.get('city'):

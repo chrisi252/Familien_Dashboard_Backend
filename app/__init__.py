@@ -15,27 +15,22 @@ def create_app():
     load_dotenv()
     app = Flask(__name__)
 
-    # CORS — credentials (cookies) erfordern eine explizite Origin, kein Wildcard
     CORS(app, supports_credentials=True, origins=os.environ.get('FRONTEND_URL', 'http://localhost:3000'))
 
-    # Konfiguration laden (greift auf .env datei zurueck)
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    # JWT Konfiguration
     app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
     app.config['JWT_TOKEN_LOCATION'] = ['cookies']
     app.config['JWT_COOKIE_HTTPONLY'] = True
     app.config['JWT_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'
     app.config['JWT_COOKIE_SAMESITE'] = 'Lax'
-    app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # kein separates CSRF-Token nötig
+    app.config['JWT_COOKIE_CSRF_PROTECT'] = False
     jwt = JWTManager(app)
 
-    # Extensions mit app verbinden
     db.init_app(app)
     migrate.init_app(app, db)
 
-    # Blueprints registrieren
     from app.routes import (
         main_bp,
         example_bp,
@@ -49,11 +44,10 @@ def create_app():
     app.register_blueprint(family_bp)
     app.register_blueprint(widget_bp)
 
-    # Widget-Packages importieren — triggert register() in deren __init__.py
     import app.widgets.todo as _todo_widget
     import app.widgets.weather as _weather_widget
 
-    # Widget-Routen anmelden und Registry mit DB synchronisieren
+
     from app.widgets.registry import get_all, sync_to_db
     for widget in get_all():
         widget.register_routes(app)

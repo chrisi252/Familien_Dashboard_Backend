@@ -7,18 +7,6 @@ user_bp = Blueprint('user', __name__, url_prefix='/api/users')
 
 @user_bp.route('/register', methods=['POST'])
 def register():
-    """Register a new user
-    
-    Expected JSON body:
-    {
-        "username": "string",
-        "password": "string",
-        "first_name": "string",
-        "last_name": "string"
-    }
-    
-    Returns: User object; JWT is set as cookie
-    """
     try:
         data = request.get_json()
         if not data:
@@ -30,17 +18,15 @@ def register():
             first_name=data.get('first_name'),
             last_name=data.get('last_name')
         )
-        
-        # Generate JWT token
-        access_token = create_access_token(identity=str(user.id))
 
+        access_token = create_access_token(identity=str(user.id))
         response = jsonify({
             'message': 'User registered successfully',
             'user': user.to_dict()
         })
         set_access_cookies(response, access_token)
         return response, 201
-        
+
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
@@ -49,42 +35,29 @@ def register():
 
 @user_bp.route('/login', methods=['POST'])
 def login():
-    """Login user
-    
-    Expected JSON body:
-    {
-        "username": "string",
-        "password": "string"
-    }
-    
-    Returns: User data; JWT is set as cookie
-    """
     try:
         data = request.get_json()
         if not data:
             return jsonify({'error': 'No data provided'}), 400
-        
+
         username = data.get('username')
         password = data.get('password')
-        
-        # Validate required fields
+
         if not username:
             return jsonify({'error': 'Username is required'}), 400
         if not password:
             return jsonify({'error': 'Password is required'}), 400
-        
-        # Get user and verify password
+
         user = UserService.get_user_by_username(username)
         if not user:
             return jsonify({'error': 'Invalid username or password'}), 401
-        
+
         if not user.is_active:
             return jsonify({'error': 'Account is inactive'}), 403
-        
+
         if not UserService.verify_password(user, password):
             return jsonify({'error': 'Invalid username or password'}), 401
-        
-        # Generate JWT token
+
         access_token = create_access_token(identity=str(user.id))
 
         user_families = FamilyService.get_user_families(user.id)
@@ -103,7 +76,7 @@ def login():
         })
         set_access_cookies(response, access_token)
         return response, 200
-        
+
     except Exception as e:
         return jsonify({'error': 'Login failed', 'details': str(e)}), 500
 
@@ -111,10 +84,6 @@ def login():
 @user_bp.route('/profile', methods=['GET'])
 @jwt_required()
 def get_profile():
-    """Get current user profile (requires JWT token)
-
-    Returns: Current user data
-    """
     try:
         current_user_id = int(get_jwt_identity())
         user = UserService.get_user_by_id(current_user_id)
@@ -131,7 +100,6 @@ def get_profile():
 @user_bp.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
-    """Logout — löscht den JWT-Cookie."""
     response = jsonify({'message': 'Logout erfolgreich'})
     unset_jwt_cookies(response)
     return response, 200

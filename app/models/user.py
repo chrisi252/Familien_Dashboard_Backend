@@ -4,7 +4,6 @@ from datetime import datetime
 
 
 class User(db.Model):
-    """User model for storing user information"""
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -17,14 +16,12 @@ class User(db.Model):
 
     is_system_admin = db.Column(db.Boolean, default=False)
 
-    # Relationships
     family_roles = db.relationship(
         'UserFamilyRole', back_populates='user', cascade='all, delete-orphan')
     widget_permissions = db.relationship(
         'WidgetUserPermission', back_populates='user', cascade='all, delete-orphan')
 
     def to_dict(self):
-        """Convert user object to dictionary"""
         return {
             'id': self.id,
             'username': self.username,

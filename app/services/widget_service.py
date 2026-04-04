@@ -134,8 +134,3 @@ class WidgetService:
         family_widget.grid_pos_y = grid_pos_y
         db.session.commit()
         return family_widget
-
-    @staticmethod
-    def get_all_widget_types() -> list[dict]:
-        """Gibt alle verfügbaren Widget-Typen zurück (für Systemadmin)."""
-        return [wt.to_dict() for wt in WidgetType.query.all()]

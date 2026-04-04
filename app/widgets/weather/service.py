@@ -3,7 +3,7 @@ import os
 import time
 import requests
 from app import db
-from app.models import FamilyWeatherConfig, UserFamilyRole
+from app.models import FamilyWeatherConfig
 
 
 GEOCODING_URL = 'https://api.openweathermap.org/geo/1.0/direct'
@@ -105,7 +105,6 @@ class WeatherService:
         forecast_resp.raise_for_status()
         forecast_data = forecast_resp.json()
 
-        # Current weather
         weather = current_data.get('weather', [{}])[0]
         main = current_data.get('main', {})
         wind = current_data.get('wind', {})
@@ -152,13 +151,3 @@ class WeatherService:
         }
         _weather_cache[family_id] = {'data': result, 'ts': time.monotonic()}
         return result
-
-    @staticmethod
-    def is_family_admin(user_id: int, family_id: int) -> bool:
-        """Return True if the user has the Familyadmin role in the given family."""
-        membership = UserFamilyRole.query.filter_by(
-            user_id=user_id, family_id=family_id
-        ).first()
-        if not membership:
-            return False
-        return membership.role.name == 'Familyadmin'

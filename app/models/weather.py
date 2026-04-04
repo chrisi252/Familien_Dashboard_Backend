@@ -3,7 +3,6 @@ from app import db
 
 
 class FamilyWeatherConfig(db.Model):
-    """Stores the weather location configured for a family"""
     __tablename__ = 'family_weather_configs'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -15,7 +14,6 @@ class FamilyWeatherConfig(db.Model):
     updated_at = db.Column(db.DateTime, server_default=db.func.now(),
                            onupdate=db.func.now())
 
-    # Relationships
     family = db.relationship('Family', backref=db.backref(
         'weather_config', uselist=False, cascade='all, delete-orphan'))
 

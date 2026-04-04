@@ -3,7 +3,6 @@ from app import db
 
 
 class WidgetType(db.Model):
-    """WidgetType model - Defines available widget types"""
     __tablename__ = 'widget_types'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -26,7 +25,6 @@ class WidgetType(db.Model):
 
 
 class FamilyWidget(db.Model):
-    """FamilyWidget model - Widget instances enabled for a family"""
     __tablename__ = 'family_widgets'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -36,7 +34,6 @@ class FamilyWidget(db.Model):
         'widget_types.id', ondelete='CASCADE'), nullable=False)
     is_enabled = db.Column(db.Boolean, default=True)
 
-    # Grid-Layout (frontend-seitig konfigurierbar, backend-seitig gespeichert)
     grid_col = db.Column(db.Integer, default=1)
     grid_row = db.Column(db.Integer, default=1)
     grid_pos_x = db.Column(db.Integer, default=0)
@@ -68,14 +65,6 @@ class FamilyWidget(db.Model):
 
 
 class WidgetUserPermission(db.Model):
-    """WidgetUserPermission model - Per-user permissions for a widget within a family.
-
-    Einträge werden automatisch angelegt wenn:
-    - Ein User einer Familie beitritt (für alle aktiven Widgets)
-    - Ein Admin ein Widget aktiviert (für alle Familienmitglieder)
-    Die Defaults kommen aus BaseWidget.get_default_permissions(role_name).
-    Ein Admin kann Einträge nachträglich per PUT-Route überschreiben.
-    """
     __tablename__ = 'widget_user_permissions'
 
     id = db.Column(db.Integer, primary_key=True)

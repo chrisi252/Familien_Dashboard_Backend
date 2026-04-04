@@ -9,24 +9,6 @@ widget_bp = Blueprint('widget', __name__, url_prefix='/api/families')
 @widget_bp.route('/<int:family_id>/widgets', methods=['GET'])
 @jwt_required()
 def get_widgets(family_id):
-    """Gibt alle aktiven Widgets zurück, für die der User can_view hat.
-
-    Zugänglich für alle Familienmitglieder — Filterung erfolgt nach
-    WidgetUserPermission des anfragenden Users.
-
-    Returns:
-        {
-            "widgets": [
-                {
-                    "id", "family_id", "widget_type_id", "widget_key",
-                    "display_name", "description", "is_enabled",
-                    "grid_col", "grid_row", "grid_pos_x", "grid_pos_y",
-                    "can_edit"
-                },
-                ...
-            ]
-        }
-    """
     try:
         user_id = int(get_jwt_identity())
         widgets = WidgetService.get_widgets_for_user(family_id, user_id)
@@ -39,13 +21,6 @@ def get_widgets(family_id):
 @jwt_required()
 @require_family_admin
 def enable_widget(family_id):
-    """Aktiviert ein Widget für die Familie. Nur für Familyadmin.
-
-    Expected JSON body:
-    {
-        "widget_key": "todo"
-    }
-    """
     try:
         data = request.get_json()
         if not data or not data.get('widget_key'):
@@ -63,7 +38,6 @@ def enable_widget(family_id):
 @jwt_required()
 @require_family_admin
 def disable_widget(family_id, family_widget_id):
-    """Deaktiviert ein Widget für die Familie. Nur für Familyadmin."""
     try:
         WidgetService.disable_widget(family_id, family_widget_id)
         return jsonify({'message': 'Widget deaktiviert'}), 200
@@ -77,14 +51,6 @@ def disable_widget(family_id, family_widget_id):
 @jwt_required()
 @require_family_admin
 def update_user_permission(family_id, family_widget_id, user_id):
-    """Überschreibt die Widget-Permission eines Users. Nur für Familyadmin.
-
-    Expected JSON body:
-    {
-        "can_view": true,
-        "can_edit": false
-    }
-    """
     try:
         data = request.get_json()
         if not data:
@@ -108,16 +74,6 @@ def update_user_permission(family_id, family_widget_id, user_id):
 @jwt_required()
 @require_family_admin
 def update_layout(family_id, family_widget_id):
-    """Speichert das Grid-Layout eines Widgets. Nur für Familyadmin.
-
-    Expected JSON body:
-    {
-        "grid_col": 2,
-        "grid_row": 1,
-        "grid_pos_x": 0,
-        "grid_pos_y": 0
-    }
-    """
     try:
         data = request.get_json()
         if not data:

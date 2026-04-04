@@ -4,7 +4,6 @@ from flask_jwt_extended import jwt_required
 from app.widgets.todo.service import TodoService
 from app.utils import require_widget_permission
 
-# Blueprint-Name 'todo' muss mit TodoWidget.key übereinstimmen
 bp = Blueprint('todo', __name__, url_prefix='/api/families')
 
 
@@ -12,7 +11,6 @@ bp = Blueprint('todo', __name__, url_prefix='/api/families')
 @jwt_required()
 @require_widget_permission('can_view')
 def get_todos(family_id):
-    """Gibt alle Todos der Familie zurück."""
     try:
         return jsonify({'todos': TodoService.get_todos(family_id)}), 200
     except Exception as e:
@@ -23,14 +21,6 @@ def get_todos(family_id):
 @jwt_required()
 @require_widget_permission('can_edit')
 def create_todo(family_id):
-    """Erstellt ein neues Todo.
-
-    Expected JSON body:
-    {
-        "title": "Einkaufen",
-        "description": "Milch, Brot"  (optional)
-    }
-    """
     try:
         data = request.get_json()
         if not data or not data.get('title'):
@@ -51,15 +41,6 @@ def create_todo(family_id):
 @jwt_required()
 @require_widget_permission('can_edit')
 def update_todo(family_id, todo_id):
-    """Aktualisiert ein Todo.
-
-    Expected JSON body (alle Felder optional):
-    {
-        "title": "...",
-        "description": "...",
-        "is_completed": true
-    }
-    """
     try:
         data = request.get_json()
         if not data:
@@ -78,7 +59,6 @@ def update_todo(family_id, todo_id):
 @jwt_required()
 @require_widget_permission('can_edit')
 def delete_todo(family_id, todo_id):
-    """Löscht ein Todo."""
     try:
         TodoService.delete_todo(todo_id, family_id)
         return jsonify({'message': 'Todo gelöscht'}), 200
