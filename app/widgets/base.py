@@ -34,6 +34,10 @@ class BaseWidget(ABC):
 
         Kann pro Widget überschrieben werden.
         role_name: 'Familyadmin' oder 'Guest'
+
+        Hinweis: Für 'Familyadmin' wird can_view serverseitig immer
+        auf True erzwungen (in family_service / widget_service),
+        unabhängig vom Rückgabewert dieser Methode.
         """
         if role_name == 'Familyadmin':
             return {'can_view': True, 'can_edit': True}

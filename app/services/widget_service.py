@@ -63,6 +63,8 @@ class WidgetService:
             defaults = widget_instance.get_default_permissions(role_name) if widget_instance else {
                 'can_view': True, 'can_edit': False
             }
+            if role_name == 'Familyadmin':
+                defaults['can_view'] = True
             db.session.add(WidgetUserPermission(
                 family_widget_id=family_widget.id,
                 user_id=member.user_id,
