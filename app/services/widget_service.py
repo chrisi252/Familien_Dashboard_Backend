@@ -48,6 +48,16 @@ class WidgetService:
         return result
 
     @staticmethod
+    def get_widget_permissions(family_id: int, family_widget_id: int) -> list[dict]:
+        family_widget = FamilyWidget.query.filter_by(
+            id=family_widget_id, family_id=family_id
+        ).first()
+        if not family_widget:
+            raise ValueError('Widget nicht gefunden')
+
+        return [perm.to_dict() for perm in family_widget.user_permissions]
+
+    @staticmethod
     def update_user_permission(
         family_id: int,
         family_widget_id: int,

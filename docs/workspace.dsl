@@ -1,4 +1,4 @@
-workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Backends" {
+workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Systems" {
 
     model {
         # Personen
@@ -12,7 +12,33 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Back
         familienDashboard = softwareSystem "Familien-Dashboard" "Webbasiertes Dashboard für Familien mit Widgets (Todo, Wetter)." {
 
             # Container
-            frontend = container "Frontend SPA" "Single Page Application für das Dashboard." "React / TypeScript" "Browser"
+            frontend = container "Frontend SPA" "Single Page Application für das Dashboard." "Angular / TypeScript" "Browser" {
+
+                # State & Services
+                dashboardService = component "DashboardService" "Zentrales Signal-basiertes State-Management: addedWidgets, widgets, widgetsToAdd. Lädt Widgets vom Backend, persistiert Layout." "Angular Service (Signal)"
+                familyServiceFE = component "FamilyService" "API-Calls: Widgets laden, Permissions updaten, Layout speichern (Bulk)." "Angular Service"
+                userStateService = component "UserStateService" "Hält aktuellen User und ausgewählte familyId als Signals." "Angular Service (Signal)"
+
+                # Widget Registry
+                widgetRegistry = component "Widget Registry" "Statisches Mapping: widget_key → Angular Component + Default-Größe (WIDGET_REGISTRY)." "TypeScript Constant"
+
+                # Routing & Guards
+                authGuard = component "Auth Guard" "Schützt Routen — leitet zu Login weiter wenn kein JWT vorhanden." "Angular Guard"
+
+                # Components
+                dashboardComponent = component "Dashboard Component" "Haupt-View: rendert addedWidgets-Array, CDK Drag & Drop, Drawer für Widget-Auswahl." "Angular Component"
+                widgetComponent = component "Widget Component" "Wrapper für ein einzelnes Widget: Label, NgComponentOutlet, Options-Overlay, cdkDrag." "Angular Component"
+                widgetOptions = component "Widget Options" "Overlay zum Ändern von Größe (cols/rows) und Entfernen des Widgets." "Angular Component"
+                headerComponent = component "Header Component" "Navigation, User-Info, Family-Auswahl." "Angular Component"
+                adminComponent = component "Admin Component" "Verwaltung von Widget-Berechtigungen pro User (nur Familyadmin)." "Angular Component"
+
+                # Widgets
+                notesWidget = component "Notes Widget" "Widget für Familiennotizen." "Angular Standalone Component"
+                todoWidget = component "Todo Widget" "Widget für die gemeinsame Todo-Liste." "Angular Standalone Component"
+                weatherWidget = component "Weather Widget" "Widget für Wetterdaten inkl. Standort-Konfiguration." "Angular Standalone Component"
+                scheduleWidget = component "Schedule Widget" "Widget für Termine." "Angular Standalone Component"
+                calendarWidget = component "Calendar Widget" "Widget für Google Kalender-Integration." "Angular Standalone Component"
+            }
 
             backend = container "Backend API" "REST API mit JWT-Auth, Widget-System und Permissions." "Python / Flask" {
                 # Routes
@@ -34,7 +60,7 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Back
                 roleService = component "RoleService" "Rollenabfragen (Familyadmin, Guest)" "Service Layer"
 
                 # Widget System
-                widgetRegistry = component "Widget Registry" "In-Memory Registry + sync_to_db() provisioniert Widgets für alle Familien" "Python Module"
+                widgetRegistryBE = component "Widget Registry" "In-Memory Registry + sync_to_db() provisioniert Widgets für alle Familien" "Python Module"
                 baseWidget = component "BaseWidget" "Abstrakte Basisklasse mit get_default_permissions()" "ABC"
 
                 # Models
@@ -56,7 +82,29 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Back
         backend -> database "Liest/Schreibt" "SQLAlchemy / PostgreSQL"
         backend -> openweathermap "Wetter + Geocoding" "HTTPS / JSON"
 
-        # Beziehungen — Komponenten (Routes → Decorators)
+        # Beziehungen — Frontend-Komponenten (intern)
+        dashboardComponent -> dashboardService "Liest addedWidgets, widgetsToAdd; ruft add/remove/updatePosition"
+        dashboardComponent -> widgetComponent "Rendert pro Widget"
+        widgetComponent -> widgetOptions "Zeigt Options-Overlay"
+        widgetComponent -> widgetRegistry "Lookup: widget_key → Component"
+        dashboardService -> familyServiceFE "getFamilyWidgets(), updateWidgetLayout()"
+        dashboardService -> userStateService "currentUser(), currentFamilyId()"
+        dashboardService -> widgetRegistry "mapBackendWidget()"
+        adminComponent -> familyServiceFE "updateWidgetUserPermission()"
+        headerComponent -> userStateService "Zeigt User + Family"
+
+        # Beziehungen — Widget-Komponenten → Services
+        todoWidget -> familyServiceFE "GET/POST/PUT/DELETE todos"
+        weatherWidget -> familyServiceFE "GET weather, PUT location"
+
+        # Beziehungen — Frontend → Backend (API-Calls via FamilyService)
+        familyServiceFE -> widgetRoutes "GET /widgets, PUT /widgets/layout" "HTTPS/JSON"
+        familyServiceFE -> todoRoutes "GET/POST/PUT/DELETE /todos" "HTTPS/JSON"
+        familyServiceFE -> weatherRoutes "GET /weather, PUT /weather/location" "HTTPS/JSON"
+        familyServiceFE -> familyRoutes "GET /families, POST /families, JOIN" "HTTPS/JSON"
+        familyServiceFE -> userRoutes "Login, Register, Logout, Profile" "HTTPS/JSON"
+
+        # Beziehungen — Backend-Komponenten (Routes → Decorators)
         userRoutes -> jwtManager "JWT erstellen/löschen"
         familyRoutes -> authDecorators "JWT + Admin-Check"
         widgetRoutes -> authDecorators "JWT-Check (Admin nur bei Permissions)"
@@ -85,9 +133,9 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Back
         weatherService -> openweathermap "Current Weather, Forecast, Geocoding" "HTTPS"
 
         # Beziehungen — Widget System
-        familyService -> widgetRegistry "get_default_permissions() bei Family-Erstellung"
-        widgetRegistry -> baseWidget "Verwaltet registrierte Widgets"
-        widgetRegistry -> models "sync_to_db() erstellt WidgetType + FamilyWidget + Permissions"
+        familyService -> widgetRegistryBE "get_default_permissions() bei Family-Erstellung"
+        widgetRegistryBE -> baseWidget "Verwaltet registrierte Widgets"
+        widgetRegistryBE -> models "sync_to_db() erstellt WidgetType + FamilyWidget + Permissions"
 
         # Beziehungen — Models → DB
         models -> database "ORM Queries"
@@ -105,11 +153,18 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Back
         container familienDashboard "Containers" {
             include *
             autoLayout
-            description "Container-Sicht: Frontend, Backend API, Datenbank"
+            description "Container-Sicht: Frontend SPA, Backend API, Datenbank"
         }
 
-        # Level 3: Components
-        component backend "Components" {
+        # Level 3: Components — Frontend
+        component frontend "ComponentsFrontend" {
+            include *
+            autoLayout
+            description "Komponenten der Angular Frontend SPA"
+        }
+
+        # Level 3: Components — Backend
+        component backend "ComponentsBackend" {
             include *
             autoLayout
             description "Komponenten des Backend-API-Containers"

@@ -17,6 +17,19 @@ def get_widgets(family_id):
         return jsonify({'error': 'Widgets konnten nicht abgerufen werden', 'details': str(e)}), 500
 
 
+@widget_bp.route('/<int:family_id>/widgets/<int:family_widget_id>/permissions', methods=['GET'])
+@jwt_required()
+@require_family_admin
+def get_widget_permissions(family_id, family_widget_id):
+    try:
+        permissions = WidgetService.get_widget_permissions(family_id, family_widget_id)
+        return jsonify({'permissions': permissions}), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        return jsonify({'error': 'Berechtigungen konnten nicht abgerufen werden', 'details': str(e)}), 500
+
+
 @widget_bp.route('/<int:family_id>/widgets/<int:family_widget_id>/permissions/<int:user_id>', methods=['PUT'])
 @jwt_required()
 @require_family_admin

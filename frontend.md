@@ -238,6 +238,22 @@ Das Frontend sollte anhand von `can_edit` entscheiden, ob Bearbeitungs-Buttons a
 
 ---
 
+#### `GET /api/families/<family_id>/widgets/<family_widget_id>/permissions`
+Gibt die Berechtigungen aller Familienmitglieder für ein Widget zurück.
+
+**Auth:** JWT + Familyadmin
+
+**Antwort (200):**
+```json
+{
+  "permissions": [
+    { "id": 1, "family_widget_id": 2, "user_id": 3, "can_view": true, "can_edit": false }
+  ]
+}
+```
+
+---
+
 #### `PUT /api/families/<family_id>/widgets/<family_widget_id>/permissions/<user_id>`
 Überschreibt die Berechtigungen eines Users für ein Widget.
 

@@ -724,6 +724,55 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/families/{family_id}/widgets/{family_widget_id}/permissions:
+    get:
+      summary: Get all user permissions for a widget
+      description: Requires Familyadmin role. Returns can_view and can_edit for every family member for this widget.
+      tags: [Widgets]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: family_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: family_widget_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of user permissions for this widget
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  permissions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/WidgetUserPermission"
+        "403":
+          description: Not a family admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Widget not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/families/{family_id}/widgets/{family_widget_id}/permissions/{user_id}:
     put:
       summary: Override widget permissions for a specific user
