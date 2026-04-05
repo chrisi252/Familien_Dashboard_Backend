@@ -2,7 +2,7 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Back
 
     model {
         # Personen
-        familyadmin = person "Familyadmin" "Erstellt und verwaltet eine Familie. Kann Berechtigungen und Layout ändern."
+        familyadmin = person "Familyadmin" "Erstellt und verwaltet eine Familie. Kann Berechtigungen verwalten."
         guest = person "Gast" "Familienmitglied mit eingeschränkten Rechten (can_view, kein can_edit)."
 
         # Externe Systeme
@@ -18,7 +18,7 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Back
                 # Routes
                 userRoutes = component "User Routes" "Register, Login, Profile, Logout" "Flask Blueprint"
                 familyRoutes = component "Family Routes" "Family CRUD, Join" "Flask Blueprint"
-                widgetRoutes = component "Widget Routes" "Widget-Liste, Permissions, Layout" "Flask Blueprint"
+                widgetRoutes = component "Widget Routes" "Widget-Liste, Permissions, User-Layout" "Flask Blueprint"
                 todoRoutes = component "Todo Routes" "Todo CRUD" "Flask Blueprint (Widget)"
                 weatherRoutes = component "Weather Routes" "Wetter abrufen, Standort ändern" "Flask Blueprint (Widget)"
 
@@ -28,7 +28,7 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Back
                 # Services
                 userService = component "UserService" "User-Erstellung, Passwort-Validierung" "Service Layer"
                 familyService = component "FamilyService" "Family-Erstellung mit Auto-Widget-Provisioning, Mitgliederverwaltung" "Service Layer"
-                widgetService = component "WidgetService" "Widget-Liste, Permission-Updates, Layout" "Service Layer"
+                widgetService = component "WidgetService" "Widget-Liste, Permission-Updates, User-Layout (Bulk)" "Service Layer"
                 todoService = component "TodoService" "Todo CRUD" "Service Layer"
                 weatherService = component "WeatherService" "Geocoding, Wetter-API-Aufrufe" "Service Layer"
                 roleService = component "RoleService" "Rollenabfragen (Familyadmin, Guest)" "Service Layer"
@@ -38,7 +38,7 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Back
                 baseWidget = component "BaseWidget" "Abstrakte Basisklasse mit get_default_permissions()" "ABC"
 
                 # Models
-                models = component "SQLAlchemy Models" "User, Family, Role, UserFamilyRole, WidgetType, FamilyWidget, WidgetUserPermission, Todo, FamilyWeatherConfig" "SQLAlchemy ORM"
+                models = component "SQLAlchemy Models" "User, Family, Role, UserFamilyRole, WidgetType, FamilyWidget, WidgetUserPermission, UserWidgetConfig, Todo, FamilyWeatherConfig" "SQLAlchemy ORM"
 
                 # JWT
                 jwtManager = component "JWT Manager" "Cookie-basierte JWT-Authentifizierung" "Flask-JWT-Extended"
@@ -59,7 +59,7 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Back
         # Beziehungen — Komponenten (Routes → Decorators)
         userRoutes -> jwtManager "JWT erstellen/löschen"
         familyRoutes -> authDecorators "JWT + Admin-Check"
-        widgetRoutes -> authDecorators "JWT + Admin-Check"
+        widgetRoutes -> authDecorators "JWT-Check (Admin nur bei Permissions)"
         todoRoutes -> authDecorators "JWT + Widget-Permission-Check"
         weatherRoutes -> authDecorators "JWT + Widget-Permission-Check"
 
@@ -74,8 +74,8 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Back
 
         # Beziehungen — Services → Models/DB
         userService -> models "Liest/Schreibt User"
-        familyService -> models "Liest/Schreibt Family, UserFamilyRole, FamilyWidget, WidgetUserPermission"
-        widgetService -> models "Liest/Schreibt FamilyWidget, WidgetUserPermission"
+        familyService -> models "Liest/Schreibt Family, UserFamilyRole, FamilyWidget, WidgetUserPermission, UserWidgetConfig"
+        widgetService -> models "Liest/Schreibt FamilyWidget, WidgetUserPermission, UserWidgetConfig"
         todoService -> models "Liest/Schreibt Todo"
         weatherService -> models "Liest/Schreibt FamilyWeatherConfig"
         roleService -> models "Liest UserFamilyRole"
