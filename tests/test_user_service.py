@@ -74,6 +74,7 @@ class TestGetUser:
     def test_get_by_id_returns_user(self, db_transaction):
         user = make_user()
         found = UserService.get_user_by_id(user.id)
+        assert found is not None
         assert found.id == user.id
 
     def test_get_by_id_unknown_returns_none(self, db_transaction):
@@ -82,6 +83,7 @@ class TestGetUser:
     def test_get_by_username_returns_user(self, db_transaction):
         make_user(username='maria')
         found = UserService.get_user_by_username('maria')
+        assert found is not None
         assert found.username == 'maria'
 
     def test_get_by_username_strips_whitespace(self, db_transaction):
