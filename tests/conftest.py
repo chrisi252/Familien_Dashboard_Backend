@@ -4,16 +4,16 @@ from werkzeug.security import generate_password_hash
 
 from app import create_app, db as _db
 from app.models import Role, User, Family, UserFamilyRole, WidgetType, FamilyWidget, WidgetUserPermission
+from app.widgets.registry import sync_to_db
 
 
 def create_app_for_testing():
-    app = create_app()
-    app.config.update(
-        TESTING=True,
-        SQLALCHEMY_DATABASE_URI='sqlite:///:memory:',
-        JWT_SECRET_KEY='test-secret',
-        JWT_COOKIE_CSRF_PROTECT=False,
-    )
+    app = create_app(test_config={
+        'TESTING': True,
+        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
+        'JWT_SECRET_KEY': 'test-secret',
+        'JWT_COOKIE_CSRF_PROTECT': False,
+    })
     return app
 
 
@@ -22,6 +22,7 @@ def app():
     application = create_app_for_testing()
     with application.app_context():
         _db.create_all()
+        sync_to_db()
         _seed_roles()
         yield application
         _db.drop_all()
@@ -29,17 +30,14 @@ def app():
 
 @pytest.fixture(autouse=True)
 def db_transaction(app):
-    """Wrap every test in a transaction that gets rolled back — no state leaks between tests."""
+    """Clear all non-seed data after each test."""
     with app.app_context():
-        connection = _db.engine.connect()
-        transaction = connection.begin()
-        _db.session.bind = connection
-
         yield _db
-
-        _db.session.remove()
-        transaction.rollback()
-        connection.close()
+        _db.session.rollback()
+        for table in reversed(_db.metadata.sorted_tables):
+            if table.name not in ('roles', 'widget_types'):
+                _db.session.execute(table.delete())
+        _db.session.commit()
 
 
 @pytest.fixture
