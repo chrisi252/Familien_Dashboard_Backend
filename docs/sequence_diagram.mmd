@@ -1,0 +1,90 @@
+sequenceDiagram
+    actor User
+    participant FE as Frontend (Angular)
+    participant IC as HTTP Interceptor
+    participant BE as Backend (Flask)
+    participant DB as PostgreSQL
+    participant WR as Widget Registry
+
+    %% ─────────────────────────────────────────
+    %% 1. REGISTER + AUTO-LOGIN (JWT Cookie)
+    %% ─────────────────────────────────────────
+    rect rgb(220, 235, 255)
+        Note over User,DB: 1 · Register & Auto-Login
+        User->>FE: Formular ausfüllen (username, password, first_name, last_name)
+        FE->>FE: Client-seitige Validierung
+        FE->>IC: POST /api/users/register
+        IC->>BE: POST /api/users/register (withCredentials: true)
+        BE->>DB: User anlegen (Passwort gehasht)
+        DB-->>BE: User-Objekt (id, username, ...)
+        BE->>BE: create_access_token(identity=user.id)
+        BE-->>IC: 201 + Set-Cookie: access_token_cookie (HttpOnly, SameSite=Lax)
+        IC-->>FE: Response weiterleiten
+        Note over IC: Browser speichert<br/>Cookie automatisch
+        FE->>FE: Navigiere zu /family-selection
+    end
+
+    %% ─────────────────────────────────────────
+    %% 2. CREATE FAMILY + Widget-Provisioning
+    %% ─────────────────────────────────────────
+    rect rgb(220, 255, 230)
+        Note over User,DB: 2 · Familie erstellen & Widget-Provisioning
+        User->>FE: Familienname eingeben & bestätigen
+        FE->>IC: POST /api/families { name }
+        IC->>BE: POST /api/families (Cookie automatisch mitgeschickt)
+        BE->>BE: @jwt_required() → user_id aus Cookie lesen
+        BE->>DB: Family-Record erstellen
+        BE->>DB: UserFamilyRole: user → Familyadmin
+        loop Für jeden WidgetType in DB
+            BE->>WR: get_default_permissions("Familyadmin")
+            WR-->>BE: { can_view: true, can_edit: true }
+            BE->>DB: FamilyWidget erstellen
+            BE->>DB: WidgetUserPermission (can_view=true, can_edit=true)
+        end
+        DB-->>BE: Commit OK
+        BE-->>IC: 201 + Family-Objekt
+        IC-->>FE: Response weiterleiten
+        FE->>FE: Navigiere zu /dashboard
+    end
+
+    %% ─────────────────────────────────────────
+    %% 3. DASHBOARD LADEN (Permission-gefiltert)
+    %% ─────────────────────────────────────────
+    rect rgb(255, 245, 210)
+        Note over User,DB: 3 · Dashboard laden (nur erlaubte Widgets)
+        FE->>IC: GET /api/families/{id}/widgets
+        IC->>BE: GET /api/families/{id}/widgets (Cookie mitgeschickt)
+        BE->>BE: @jwt_required() → user_id
+        BE->>DB: JOIN WidgetUserPermission WHERE can_view=true AND user_id=current
+        DB-->>BE: Gefilterte Widget-Liste (inkl. can_edit-Flag)
+        BE-->>IC: 200 + [{ widget_key, can_edit, position, ... }]
+        IC-->>FE: Response weiterleiten
+        FE->>FE: Dashboard rendern (nur sichtbare Widgets)
+        FE-->>User: Dashboard anzeigen
+    end
+
+    %% ─────────────────────────────────────────
+    %% 4. MANAGE PERMISSIONS (Familyadmin)
+    %% ─────────────────────────────────────────
+    rect rgb(255, 225, 225)
+        Note over User,DB: 4 · Widget-Permissions verwalten (Familyadmin)
+        User->>FE: Admin-Panel öffnen, Widget auswählen
+        FE->>IC: GET /api/families/{id}/widgets/{widgetId}/permissions
+        IC->>BE: GET ... (Cookie mitgeschickt)
+        BE->>BE: @jwt_required() + @require_family_admin → 403 wenn kein Admin
+        BE->>DB: Alle WidgetUserPermissions für dieses Widget laden
+        DB-->>BE: [{ user_id, can_view, can_edit }, ...]
+        BE-->>IC: 200 + permissions[]
+        IC-->>FE: Response weiterleiten
+        FE-->>User: Permissions-Tabelle anzeigen
+
+        User->>FE: Permission für User ändern (z.B. can_edit → false)
+        FE->>IC: PUT /api/families/{id}/widgets/{widgetId}/permissions/{userId}
+        IC->>BE: PUT ... { can_view: true, can_edit: false } (Cookie mitgeschickt)
+        BE->>BE: @jwt_required() + @require_family_admin
+        BE->>DB: WidgetUserPermission updaten
+        DB-->>BE: Updated permission
+        BE-->>IC: 200 + { can_view: true, can_edit: false }
+        IC-->>FE: Response weiterleiten
+        FE-->>User: Bestätigung anzeigen
+    end

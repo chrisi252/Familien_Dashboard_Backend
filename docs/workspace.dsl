@@ -4,6 +4,7 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Syst
         # Personen
         familyadmin = person "Familyadmin" "Erstellt und verwaltet eine Familie. Kann Berechtigungen verwalten."
         guest = person "Gast" "Familienmitglied mit eingeschränkten Rechten (can_view, kein can_edit)."
+        systemadmin = person "Systemadmin" "Plattform-Administrator. Nutzt dasselbe Frontend, sieht aber systemweite Admin-Pages (User-Verwaltung, alle Familien, System-Konfiguration)."
 
         # Externe Systeme
         openweathermap = softwareSystem "OpenWeatherMap API" "Liefert Wetterdaten, Vorhersagen und Geocoding." "External"
@@ -33,11 +34,11 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Syst
                 adminComponent = component "Admin Component" "Verwaltung von Widget-Berechtigungen pro User (nur Familyadmin)." "Angular Component"
 
                 # Widgets
-                notesWidget = component "Notes Widget" "Widget für Familiennotizen." "Angular Standalone Component"
-                todoWidget = component "Todo Widget" "Widget für die gemeinsame Todo-Liste." "Angular Standalone Component"
-                weatherWidget = component "Weather Widget" "Widget für Wetterdaten inkl. Standort-Konfiguration." "Angular Standalone Component"
-                scheduleWidget = component "Schedule Widget" "Widget für Termine." "Angular Standalone Component"
-                calendarWidget = component "Calendar Widget" "Widget für Google Kalender-Integration." "Angular Standalone Component"
+                notesWidget = component "Notes Widget" "Widget für Familiennotizen." "Angular Component"
+                todoWidget = component "Todo Widget" "Widget für die gemeinsame Todo-Liste." "Angular Component"
+                weatherWidget = component "Weather Widget" "Widget für Wetterdaten inkl. Standort-Konfiguration." "Angular Component"
+                scheduleWidget = component "Schedule Widget" "Widget für Termine." "Angular Component"
+                calendarWidget = component "Calendar Widget" "Widget für Google Kalender-Integration." "Angular Component"
             }
 
             backend = container "Backend API" "REST API mit JWT-Auth, Widget-System und Permissions." "Python / Flask" {
@@ -76,6 +77,7 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Syst
         # Beziehungen — Personen
         familyadmin -> frontend "Nutzt" "Browser"
         guest -> frontend "Nutzt" "Browser"
+        systemadmin -> frontend "Nutzt (sieht Admin-Pages: User-Verwaltung, alle Familien)" "Browser"
         frontend -> backend "API Requests" "HTTPS / JSON + JWT Cookie"
 
         # Beziehungen — Container
@@ -175,30 +177,37 @@ workspace "Familien-Dashboard" "C4-Architekturmodell des Familien-Dashboard Syst
                 shape Person
                 background #08427B
                 color #ffffff
+                fontSize 32
             }
             element "Software System" {
                 background #1168BD
                 color #ffffff
+                fontSize 32
             }
             element "External" {
                 background #999999
                 color #ffffff
+                fontSize 32
             }
             element "Container" {
                 background #438DD5
                 color #ffffff
+                fontSize 32
             }
             element "Browser" {
                 shape WebBrowser
+                fontSize 32
             }
             element "Database" {
                 shape Cylinder
                 background #438DD5
                 color #ffffff
+                fontSize 32
             }
             element "Component" {
                 background #85BBF0
                 color #000000
+                fontSize 26
             }
         }
     }
