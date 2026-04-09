@@ -19,3 +19,8 @@ dependencies = [
     "requests>=2.32.0",
     "pytest>=9.0.2",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest-cov>=7.1.0",
+]
