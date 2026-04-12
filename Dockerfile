@@ -11,6 +11,8 @@ RUN uv sync --frozen --no-dev
 
 COPY . .
 
+RUN chmod +x entrypoint.sh
+
 EXPOSE 5000
 
-CMD ["uv", "run", "gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:create_app()"]
+CMD ["./entrypoint.sh"]

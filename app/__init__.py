@@ -11,7 +11,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 
 
-def create_app():
+def create_app(test_config=None):
     load_dotenv()
     app = Flask(__name__)
 
@@ -26,6 +26,10 @@ def create_app():
     app.config['JWT_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'
     app.config['JWT_COOKIE_SAMESITE'] = 'Lax'
     app.config['JWT_COOKIE_CSRF_PROTECT'] = False
+
+    if test_config:
+        app.config.update(test_config)
+
     jwt = JWTManager(app)
 
     db.init_app(app)
@@ -47,12 +51,13 @@ def create_app():
     import app.widgets.todo as _todo_widget
     import app.widgets.weather as _weather_widget
 
-
     from app.widgets.registry import get_all, sync_to_db
     for widget in get_all():
         widget.register_routes(app)
 
-    with app.app_context():
+    @app.cli.command('sync-widgets')
+    def sync_widgets_command():
+        """Sync widget types to DB."""
         sync_to_db()
 
     return app
