@@ -104,10 +104,42 @@ def get_family(family_id):
 def delete_family(family_id):
     try:
         FamilyService.delete_family(family_id)
-        
+
         return jsonify({'message': 'Family deleted successfully'}), 200
-        
+
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
         return jsonify({'error': 'Failed to delete family', 'details': str(e)}), 500
+
+
+@family_bp.route('/<int:family_id>/invite-code', methods=['POST'])
+@jwt_required()
+@require_family_admin
+def generate_invite_code(family_id):
+    try:
+        invite = FamilyService.generate_invite_code(family_id)
+        return jsonify(invite.to_dict()), 201
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': 'Einladungscode konnte nicht erstellt werden', 'details': str(e)}), 500
+
+
+@family_bp.route('/join-by-code', methods=['POST'])
+@jwt_required()
+def join_family_by_code():
+    try:
+        current_user_id = int(get_jwt_identity())
+        data = request.get_json()
+
+        if not data or not data.get('code'):
+            return jsonify({'error': 'Einladungscode ist erforderlich'}), 400
+
+        user_family_role = FamilyService.join_family_by_code(current_user_id, data['code'])
+        return jsonify(user_family_role.to_dict()), 200
+
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': 'Beitritt fehlgeschlagen', 'details': str(e)}), 500

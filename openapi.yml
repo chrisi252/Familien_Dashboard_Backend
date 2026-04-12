@@ -36,6 +36,10 @@ components:
         is_active:
           type: boolean
           example: true
+        is_system_admin:
+          type: boolean
+          example: false
+          description: true wenn der Account Systemadministrator-Rechte hat
         created_at:
           type: string
           format: date-time
@@ -277,6 +281,87 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/WeatherForecastDay"
+
+    TimetableEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        family_id:
+          type: integer
+          example: 1
+        person_name:
+          type: string
+          example: Emma
+        color:
+          type: string
+          example: "#EF4444"
+          description: Hex-Farbwert, z.B. #EF4444
+        weekday:
+          type: integer
+          example: 0
+          description: 0=Montag, 1=Dienstag, 2=Mittwoch, 3=Donnerstag, 4=Freitag
+        start_time:
+          type: string
+          example: "08:00"
+          description: Format HH:MM
+        end_time:
+          type: string
+          example: "08:45"
+          description: Format HH:MM
+        subject:
+          type: string
+          example: Mathematik
+        room:
+          type: string
+          nullable: true
+          example: "101"
+        teacher:
+          type: string
+          nullable: true
+          example: Herr Müller
+        note:
+          type: string
+          nullable: true
+          example: Hausaufgaben nicht vergessen
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    TimetablePerson:
+      type: object
+      properties:
+        person_name:
+          type: string
+          example: Emma
+        color:
+          type: string
+          example: "#EF4444"
+
+    FamilyInviteCode:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        family_id:
+          type: integer
+          example: 3
+        code:
+          type: string
+          example: "X7K2BN"
+          description: 6-stelliger Einladungscode (Uppercase, alphanumerisch)
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+          description: Ablaufzeit (2 Minuten nach Erstellung)
 
     AuthResponse:
       type: object
@@ -679,6 +764,88 @@ paths:
                 $ref: "#/components/schemas/UserFamilyRole"
         "400":
           description: User is already a member, or family/user not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/families/{family_id}/invite-code:
+    post:
+      summary: Generate a 6-character invite code for a family
+      description: >
+        Requires Familyadmin role. Generates a new invite code valid for 2 minutes.
+        Any previous code for this family is replaced.
+      tags: [Families]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: family_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Invite code generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamilyInviteCode"
+        "400":
+          description: Family not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not a family admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/families/join-by-code:
+    post:
+      summary: Join a family using an invite code
+      description: >
+        The code resolves to a family. The user is added with the Guest role.
+        Code is case-insensitive. Expired codes return a 400 error.
+      tags: [Families]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  example: "X7K2BN"
+                  description: 6-stelliger Einladungscode
+      responses:
+        "200":
+          description: Joined family successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserFamilyRole"
+        "400":
+          description: Invalid or expired code, or already a member
           content:
             application/json:
               schema:
@@ -1267,6 +1434,400 @@ paths:
                 $ref: "#/components/schemas/Error"
         "502":
           description: Geocoding API unreachable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/families/{family_id}/timetable/persons:
+    get:
+      summary: Get all persons (children) with their color
+      description: Returns distinct person_name + color pairs for this family. Requires can_view permission.
+      tags: [Timetable]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: family_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of persons
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  persons:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TimetablePerson"
+        "403":
+          description: No permission or not a family member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/families/{family_id}/timetable/{person_name}/entries:
+    get:
+      summary: Get all timetable entries for a specific person
+      description: Returns entries sorted by weekday, then start_time. Requires can_view permission.
+      tags: [Timetable]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: family_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: person_name
+          in: path
+          required: true
+          schema:
+            type: string
+          example: Emma
+      responses:
+        "200":
+          description: List of timetable entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TimetableEntry"
+        "403":
+          description: No permission or not a family member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/families/{family_id}/timetable/entries:
+    post:
+      summary: Create a new timetable entry
+      description: Requires can_edit permission. color gilt für alle Einträge dieser Person — beim ersten Eintrag einer neuen Person setzen.
+      tags: [Timetable]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: family_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [person_name, color, weekday, start_time, end_time, subject]
+              properties:
+                person_name:
+                  type: string
+                  example: Emma
+                color:
+                  type: string
+                  example: "#EF4444"
+                  description: Hex-Farbwert, z.B. #EF4444. Sollte für alle Einträge einer Person gleich sein.
+                weekday:
+                  type: integer
+                  example: 0
+                  description: 0=Montag bis 4=Freitag
+                start_time:
+                  type: string
+                  example: "08:00"
+                  description: Format HH:MM
+                end_time:
+                  type: string
+                  example: "08:45"
+                  description: Format HH:MM, muss nach start_time liegen
+                subject:
+                  type: string
+                  example: Mathematik
+                room:
+                  type: string
+                  nullable: true
+                  example: "101"
+                teacher:
+                  type: string
+                  nullable: true
+                  example: Herr Müller
+                note:
+                  type: string
+                  nullable: true
+                  example: Hausaufgaben nicht vergessen
+      responses:
+        "201":
+          description: Entry created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimetableEntry"
+        "400":
+          description: Validation error (missing field, invalid weekday, invalid time, invalid color)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: No permission or not a family member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/families/{family_id}/timetable/entries/{entry_id}:
+    put:
+      summary: Update a timetable entry
+      description: Partial update — only send fields that should change. Requires can_edit permission.
+      tags: [Timetable]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: family_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: entry_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                person_name:
+                  type: string
+                  example: Emma
+                color:
+                  type: string
+                  example: "#EF4444"
+                weekday:
+                  type: integer
+                  example: 0
+                start_time:
+                  type: string
+                  example: "08:00"
+                end_time:
+                  type: string
+                  example: "08:45"
+                subject:
+                  type: string
+                  example: Mathematik
+                room:
+                  type: string
+                  nullable: true
+                teacher:
+                  type: string
+                  nullable: true
+                note:
+                  type: string
+                  nullable: true
+      responses:
+        "200":
+          description: Entry updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimetableEntry"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: No permission or not a family member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Entry not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete a timetable entry
+      description: Requires can_edit permission.
+      tags: [Timetable]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: family_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: entry_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Entry deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+        "403":
+          description: No permission or not a family member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Entry not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/families:
+    get:
+      summary: List all families
+      description: Requires system admin. Returns all families sorted by creation date (newest first).
+      tags: [Admin]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of all families
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  families:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Family"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not a system admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/accounts:
+    post:
+      summary: Create a new system admin account
+      description: Requires system admin. Creates a new user with is_system_admin=true.
+      tags: [Admin]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password, first_name, last_name]
+              properties:
+                username:
+                  type: string
+                  example: admin2
+                password:
+                  type: string
+                  format: password
+                  example: Admin5678!
+                first_name:
+                  type: string
+                  example: Zweiter
+                last_name:
+                  type: string
+                  example: Admin
+      responses:
+        "201":
+          description: Admin account created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admin-Account erstellt
+                  user:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: Missing fields or username already taken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not a system admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
           content:
             application/json:
               schema:

@@ -1,5 +1,10 @@
 from app import db
-from app.models import Family, UserFamilyRole, Role, User, FamilyWidget, WidgetUserPermission, WidgetType
+from app.models import Family, UserFamilyRole, Role, User, FamilyWidget, WidgetUserPermission, WidgetType, FamilyInviteCode
+import secrets
+import string
+from datetime import datetime, timedelta
+
+_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'  # ohne 0/O/I/1
 
 
 class FamilyService:
@@ -163,3 +168,47 @@ class FamilyService:
         except Exception:
             db.session.rollback()
             raise
+
+    @staticmethod
+    def generate_invite_code(family_id):
+        family = Family.query.get(family_id)
+        if not family:
+            raise ValueError('Familie nicht gefunden')
+
+        existing = FamilyInviteCode.query.filter_by(family_id=family_id).first()
+        if existing:
+            db.session.delete(existing)
+            db.session.flush()
+
+        for _ in range(5):
+            code = ''.join(secrets.choice(_CODE_CHARS) for _ in range(6))
+            if not FamilyInviteCode.query.filter_by(code=code).first():
+                break
+        else:
+            raise ValueError('Code-Generierung fehlgeschlagen, bitte erneut versuchen')
+
+        invite = FamilyInviteCode(
+            family_id=family_id,
+            code=code,
+            expires_at=datetime.utcnow() + timedelta(minutes=2),
+        )
+        try:
+            db.session.add(invite)
+            db.session.commit()
+            return invite
+        except Exception:
+            db.session.rollback()
+            raise
+
+    @staticmethod
+    def join_family_by_code(user_id, code):
+        invite = FamilyInviteCode.query.filter_by(code=code.upper().strip()).first()
+        if not invite:
+            raise ValueError('Ungültiger Einladungscode')
+
+        if invite.is_expired():
+            db.session.delete(invite)
+            db.session.commit()
+            raise ValueError('Der Einladungscode ist abgelaufen')
+
+        return FamilyService.add_user_to_family(user_id, invite.family_id)
