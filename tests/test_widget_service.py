@@ -3,7 +3,7 @@ import pytest
 
 from app.services.widget_service import WidgetService
 from app.services.family_service import FamilyService
-from app.models import FamilyWidget, WidgetUserPermission
+from app.models import FamilyWidget, WidgetUserPermission, UserWidgetConfig
 from tests.conftest import make_user, make_family, make_widget_type, make_family_widget, grant_permission
 
 
@@ -93,13 +93,20 @@ class TestUpdateLayout:
         family = FamilyService.create_family('Familie', admin.id)
         fw = FamilyWidget.query.filter_by(family_id=family.id).first()
 
-        WidgetService.update_layout(family.id, fw.id, grid_col=2, grid_row=3, grid_pos_x=1, grid_pos_y=0)
+        layout = [{'family_widget_id': fw.id, 'position': 0, 'grid_col': 2, 'grid_row': 3}]
+        configs = WidgetService.update_layout(family.id, admin.id, layout)
 
-        updated = FamilyWidget.query.get(fw.id)
-        assert updated.grid_col == 2
-        assert updated.grid_row == 3
-        assert updated.grid_pos_x == 1
-        assert updated.grid_pos_y == 0
+        assert len(configs) == 1
+        assert configs[0]['grid_col'] == 2
+        assert configs[0]['grid_row'] == 3
+        assert configs[0]['position'] == 0
+
+        cfg = UserWidgetConfig.query.filter_by(
+            user_id=admin.id, family_widget_id=fw.id
+        ).first()
+        assert cfg is not None
+        assert cfg.grid_col == 2
+        assert cfg.grid_row == 3
 
     def test_widget_from_different_family_raises(self, db_transaction):
         admin = make_user(username='admin')
@@ -108,5 +115,68 @@ class TestUpdateLayout:
         family_b = FamilyService.create_family('FamilieB', other.id)
         fw_b = FamilyWidget.query.filter_by(family_id=family_b.id).first()
 
+        layout = [{'family_widget_id': fw_b.id, 'position': 0, 'grid_col': 1, 'grid_row': 1}]
         with pytest.raises(ValueError, match='Widget'):
-            WidgetService.update_layout(family_a.id, fw_b.id, 1, 1, 0, 0)
+            WidgetService.update_layout(family_a.id, admin.id, layout)
+
+    def test_layout_replaces_previous_config(self, db_transaction):
+        admin = make_user(username='admin')
+        family = FamilyService.create_family('Familie', admin.id)
+        fw = FamilyWidget.query.filter_by(family_id=family.id).first()
+
+        WidgetService.update_layout(family.id, admin.id, [
+            {'family_widget_id': fw.id, 'position': 0, 'grid_col': 1, 'grid_row': 1},
+        ])
+        WidgetService.update_layout(family.id, admin.id, [
+            {'family_widget_id': fw.id, 'position': 5, 'grid_col': 4, 'grid_row': 2},
+        ])
+
+        configs = UserWidgetConfig.query.filter_by(user_id=admin.id).all()
+        assert len(configs) == 1
+        assert configs[0].position == 5
+        assert configs[0].grid_col == 4
+
+    def test_empty_layout_clears_configs(self, db_transaction):
+        admin = make_user(username='admin')
+        family = FamilyService.create_family('Familie', admin.id)
+        fw = FamilyWidget.query.filter_by(family_id=family.id).first()
+
+        WidgetService.update_layout(family.id, admin.id, [
+            {'family_widget_id': fw.id, 'position': 0, 'grid_col': 1, 'grid_row': 1},
+        ])
+        WidgetService.update_layout(family.id, admin.id, [])
+
+        configs = UserWidgetConfig.query.filter_by(user_id=admin.id).all()
+        assert len(configs) == 0
+
+    def test_layout_defaults_for_missing_fields(self, db_transaction):
+        admin = make_user(username='admin')
+        family = FamilyService.create_family('Familie', admin.id)
+        fw = FamilyWidget.query.filter_by(family_id=family.id).first()
+
+        configs = WidgetService.update_layout(family.id, admin.id, [
+            {'family_widget_id': fw.id},
+        ])
+
+        assert configs[0]['position'] == 0
+        assert configs[0]['grid_col'] == 1
+        assert configs[0]['grid_row'] == 1
+
+    def test_layout_per_user_isolation(self, db_transaction):
+        admin = make_user(username='admin')
+        family = FamilyService.create_family('Familie', admin.id)
+        guest = make_user(username='guest')
+        FamilyService.add_user_to_family(guest.id, family.id)
+        fw = FamilyWidget.query.filter_by(family_id=family.id).first()
+
+        WidgetService.update_layout(family.id, admin.id, [
+            {'family_widget_id': fw.id, 'position': 0, 'grid_col': 3, 'grid_row': 3},
+        ])
+        WidgetService.update_layout(family.id, guest.id, [
+            {'family_widget_id': fw.id, 'position': 1, 'grid_col': 1, 'grid_row': 1},
+        ])
+
+        admin_cfg = UserWidgetConfig.query.filter_by(user_id=admin.id, family_widget_id=fw.id).first()
+        guest_cfg = UserWidgetConfig.query.filter_by(user_id=guest.id, family_widget_id=fw.id).first()
+        assert admin_cfg.grid_col == 3
+        assert guest_cfg.grid_col == 1
