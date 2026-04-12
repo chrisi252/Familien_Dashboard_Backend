@@ -6,7 +6,7 @@ from app.widgets.registry import register
 class WeatherWidget(BaseWidget):
     key = 'weather'
     display_name = 'Wetter'
-    description = 'Aktuelles Wetter und 5-Tage-Vorschau für die Familie'
+    description = 'Aktuelles Wetter'
 
     def register_routes(self, flask_app) -> None:
         from .routes import bp
