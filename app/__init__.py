@@ -37,12 +37,14 @@ def create_app():
         user_bp,
         family_bp,
         widget_bp,
+        admin_bp,
     )
     app.register_blueprint(main_bp)
     app.register_blueprint(example_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(family_bp)
     app.register_blueprint(widget_bp)
+    app.register_blueprint(admin_bp)
 
     import app.widgets.todo as _todo_widget
     import app.widgets.weather as _weather_widget
@@ -55,5 +57,34 @@ def create_app():
 
     with app.app_context():
         sync_to_db()
+        _seed_system_admin()
 
     return app
+
+
+def _seed_system_admin():
+    """Legt einen initialen Systemadmin-Account an, falls noch keiner existiert.
+    Credentials werden aus den Umgebungsvariablen ADMIN_USERNAME und ADMIN_PASSWORD gelesen.
+    Sind diese nicht gesetzt, wird kein Account angelegt.
+    """
+    admin_username = os.environ.get('ADMIN_USERNAME')
+    admin_password = os.environ.get('ADMIN_PASSWORD')
+
+    if not admin_username or not admin_password:
+        return
+
+    from app.models import User
+    from werkzeug.security import generate_password_hash
+
+    if User.query.filter_by(username=admin_username).first():
+        return
+
+    admin = User(
+        username=admin_username,
+        password_hash=generate_password_hash(admin_password),
+        first_name='System',
+        last_name='Admin',
+        is_system_admin=True,
+    )
+    db.session.add(admin)
+    db.session.commit()

@@ -30,6 +30,7 @@ class User(db.Model):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'is_active': self.is_active,
+            'is_system_admin': self.is_system_admin,
             'created_at': self.created_at.isoformat()
         }
 

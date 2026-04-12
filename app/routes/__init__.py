@@ -3,6 +3,7 @@ from .example import example_bp
 from .user import user_bp
 from .family import family_bp
 from .widget import widget_bp
+from .admin import admin_bp
 
 main_bp = Blueprint('main', __name__)
 
@@ -21,4 +22,5 @@ __all__ = [
     'user_bp',
     'family_bp',
     'widget_bp',
+    'admin_bp',
 ]

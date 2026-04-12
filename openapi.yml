@@ -36,6 +36,10 @@ components:
         is_active:
           type: boolean
           example: true
+        is_system_admin:
+          type: boolean
+          example: false
+          description: true wenn der Account Systemadministrator-Rechte hat
         created_at:
           type: string
           format: date-time
@@ -1611,6 +1615,110 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Entry not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/families:
+    get:
+      summary: List all families
+      description: Requires system admin. Returns all families sorted by creation date (newest first).
+      tags: [Admin]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of all families
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  families:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Family"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not a system admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/accounts:
+    post:
+      summary: Create a new system admin account
+      description: Requires system admin. Creates a new user with is_system_admin=true.
+      tags: [Admin]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password, first_name, last_name]
+              properties:
+                username:
+                  type: string
+                  example: admin2
+                password:
+                  type: string
+                  format: password
+                  example: Admin5678!
+                first_name:
+                  type: string
+                  example: Zweiter
+                last_name:
+                  type: string
+                  example: Admin
+      responses:
+        "201":
+          description: Admin account created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admin-Account erstellt
+                  user:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: Missing fields or username already taken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not a system admin
           content:
             application/json:
               schema:
