@@ -342,6 +342,27 @@ components:
           type: string
           example: "#EF4444"
 
+    FamilyInviteCode:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        family_id:
+          type: integer
+          example: 3
+        code:
+          type: string
+          example: "X7K2BN"
+          description: 6-stelliger Einladungscode (Uppercase, alphanumerisch)
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+          description: Ablaufzeit (2 Minuten nach Erstellung)
+
     AuthResponse:
       type: object
       properties:
@@ -743,6 +764,88 @@ paths:
                 $ref: "#/components/schemas/UserFamilyRole"
         "400":
           description: User is already a member, or family/user not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/families/{family_id}/invite-code:
+    post:
+      summary: Generate a 6-character invite code for a family
+      description: >
+        Requires Familyadmin role. Generates a new invite code valid for 2 minutes.
+        Any previous code for this family is replaced.
+      tags: [Families]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: family_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Invite code generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamilyInviteCode"
+        "400":
+          description: Family not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not a family admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/families/join-by-code:
+    post:
+      summary: Join a family using an invite code
+      description: >
+        The code resolves to a family. The user is added with the Guest role.
+        Code is case-insensitive. Expired codes return a 400 error.
+      tags: [Families]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  example: "X7K2BN"
+                  description: 6-stelliger Einladungscode
+      responses:
+        "200":
+          description: Joined family successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserFamilyRole"
+        "400":
+          description: Invalid or expired code, or already a member
           content:
             application/json:
               schema:

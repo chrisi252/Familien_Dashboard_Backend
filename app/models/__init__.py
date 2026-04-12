@@ -5,6 +5,7 @@ from .widget import WidgetType, FamilyWidget, WidgetUserPermission, UserWidgetCo
 from .todo import Todo
 from .weather import FamilyWeatherConfig
 from .timetable import TimetableEntry
+from .invite import FamilyInviteCode
 
 __all__ = [
     'User',
@@ -18,4 +19,5 @@ __all__ = [
     'Todo',
     'FamilyWeatherConfig',
     'TimetableEntry',
+    'FamilyInviteCode',
 ]
