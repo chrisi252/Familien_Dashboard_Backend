@@ -141,3 +141,8 @@ https://flask.palletsprojects.com/en/stable/deploying/uwsgi/
 
 # C4 Model
 - docker run -it --rm -p 8080:8080 -v ./docs:/usr/local/structurizr structurizr/structurizr local
+
+
+# Zum starten bei Migrationsproblemen: 
+docker compose up -d
+docker compose exec backend sh -c "FLASK_APP=app uv run python -m flask db upgrade"

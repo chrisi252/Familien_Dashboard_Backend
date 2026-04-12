@@ -46,6 +46,7 @@ def create_app():
 
     import app.widgets.todo as _todo_widget
     import app.widgets.weather as _weather_widget
+    import app.widgets.timetable as _timetable_widget
 
 
     from app.widgets.registry import get_all, sync_to_db
