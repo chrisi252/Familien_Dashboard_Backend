@@ -1,13 +1,10 @@
 """Wetter-Service — kapselt Geocoding und Wetter-API-Aufrufe (OpenWeatherMap)"""
-import logging
 import os
 
 import requests
 
 from app import db
 from app.models import FamilyWeatherConfig
-
-logger = logging.getLogger(__name__)
 
 GEOCODING_URL = 'https://api.openweathermap.org/geo/1.0/direct'
 CURRENT_WEATHER_URL = 'https://api.openweathermap.org/data/2.5/weather'

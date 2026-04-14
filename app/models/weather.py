@@ -1,4 +1,4 @@
-"""Weather configuration model per family"""
+"""Wetter-Konfiguration pro Familie"""
 from app import db
 
 
