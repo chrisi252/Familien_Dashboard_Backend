@@ -1,19 +1,28 @@
 """Weather service - handles geocoding and weather API calls (OpenWeatherMap)"""
+import logging
 import os
+
 import requests
+
 from app import db
 from app.models import FamilyWeatherConfig
 
+logger = logging.getLogger(__name__)
 
 GEOCODING_URL = 'https://api.openweathermap.org/geo/1.0/direct'
 CURRENT_WEATHER_URL = 'https://api.openweathermap.org/data/2.5/weather'
 FORECAST_URL = 'https://api.openweathermap.org/data/2.5/forecast'
 
+_WEATHER_UNITS = 'metric'
+_WEATHER_LANG = 'de'
+_FORECAST_ENTRIES = 40  # 5 days × 8 entries per day (3h intervals)
+_REQUEST_TIMEOUT = 5
+
 
 def _api_key() -> str:
     key = os.environ.get('OPENWEATHER_API_KEY', '')
     if not key:
-        raise RuntimeError('OPENWEATHER_API_KEY ist nicht gesetzt')
+        raise RuntimeError('OPENWEATHER_API_KEY is not set')
     return key
 
 
@@ -29,12 +38,12 @@ class WeatherService:
         resp = requests.get(
             GEOCODING_URL,
             params={'q': city_name, 'limit': 1, 'appid': _api_key()},
-            timeout=5
+            timeout=_REQUEST_TIMEOUT,
         )
         resp.raise_for_status()
         results = resp.json()
         if not results:
-            raise ValueError(f'Stadt "{city_name}" nicht gefunden')
+            raise ValueError(f'City "{city_name}" not found')
         result = results[0]
         return {
             'city_name': result.get('local_names', {}).get('de') or result.get('name', city_name),
@@ -69,64 +78,80 @@ class WeatherService:
     @staticmethod
     def fetch_weather(family_id: int) -> dict:
         config = WeatherService.get_or_create_config(family_id)
-        api_key = _api_key()
         params = {
             'lat': config.latitude,
             'lon': config.longitude,
-            'appid': api_key,
-            'units': 'metric',
-            'lang': 'de',
+            'appid': _api_key(),
+            'units': _WEATHER_UNITS,
+            'lang': _WEATHER_LANG,
         }
-
-        current_resp = requests.get(CURRENT_WEATHER_URL, params=params, timeout=5)
-        current_resp.raise_for_status()
-        current_data = current_resp.json()
-
-        forecast_resp = requests.get(FORECAST_URL, params={**params, 'cnt': 40}, timeout=5)
-        forecast_resp.raise_for_status()
-        forecast_data = forecast_resp.json()
-
-        weather = current_data.get('weather', [{}])[0]
-        main = current_data.get('main', {})
-        wind = current_data.get('wind', {})
-
-        current = {
-            'temperature': main.get('temp'),
-            'apparent_temperature': main.get('feels_like'),
-            'humidity': main.get('humidity'),
-            'wind_speed': wind.get('speed'),
-            'weather_code': weather.get('id'),
-            'weather_description': weather.get('description', '').capitalize(),
-            'icon': weather.get('icon'),
-        }
-
-        # Build daily forecast by grouping 3h entries per day
-        daily_map: dict[str, dict] = {}
-        for entry in forecast_data.get('list', []):
-            date = entry['dt_txt'][:10]
-            w = entry.get('weather', [{}])[0]
-            m = entry.get('main', {})
-            temp = m.get('temp')
-            if date not in daily_map:
-                daily_map[date] = {
-                    'date': date,
-                    'weather_code': w.get('id'),
-                    'weather_description': w.get('description', '').capitalize(),
-                    'icon': w.get('icon'),
-                    'temps': [],
-                }
-            if temp is not None:
-                daily_map[date]['temps'].append(temp)
-
-        forecast = []
-        for day in daily_map.values():
-            temps = day.pop('temps')
-            day['temperature_max'] = round(max(temps), 1) if temps else None
-            day['temperature_min'] = round(min(temps), 1) if temps else None
-            forecast.append(day)
+        current_data = _fetch_current_weather(params)
+        forecast_data = _fetch_forecast(params)
 
         return {
             'location': config.to_dict(),
-            'current': current,
-            'forecast': forecast,
+            'current': _parse_current_weather(current_data),
+            'forecast': _build_daily_forecast(forecast_data.get('list', [])),
         }
+
+
+# ---------------------------------------------------------------------------
+# Private helpers
+# ---------------------------------------------------------------------------
+
+def _fetch_current_weather(params: dict) -> dict:
+    resp = requests.get(CURRENT_WEATHER_URL, params=params, timeout=_REQUEST_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def _fetch_forecast(params: dict) -> dict:
+    resp = requests.get(
+        FORECAST_URL,
+        params={**params, 'cnt': _FORECAST_ENTRIES},
+        timeout=_REQUEST_TIMEOUT,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def _parse_current_weather(data: dict) -> dict:
+    weather = data.get('weather', [{}])[0]
+    main = data.get('main', {})
+    wind = data.get('wind', {})
+    return {
+        'temperature': main.get('temp'),
+        'apparent_temperature': main.get('feels_like'),
+        'humidity': main.get('humidity'),
+        'wind_speed': wind.get('speed'),
+        'weather_code': weather.get('id'),
+        'weather_description': weather.get('description', '').capitalize(),
+        'icon': weather.get('icon'),
+    }
+
+
+def _build_daily_forecast(entries: list) -> list:
+    daily_map: dict[str, dict] = {}
+    for entry in entries:
+        date = entry['dt_txt'][:10]
+        w = entry.get('weather', [{}])[0]
+        temp = entry.get('main', {}).get('temp')
+
+        if date not in daily_map:
+            daily_map[date] = {
+                'date': date,
+                'weather_code': w.get('id'),
+                'weather_description': w.get('description', '').capitalize(),
+                'icon': w.get('icon'),
+                'temps': [],
+            }
+        if temp is not None:
+            daily_map[date]['temps'].append(temp)
+
+    forecast = []
+    for day in daily_map.values():
+        temps = day.pop('temps')
+        day['temperature_max'] = round(max(temps), 1) if temps else None
+        day['temperature_min'] = round(min(temps), 1) if temps else None
+        forecast.append(day)
+    return forecast

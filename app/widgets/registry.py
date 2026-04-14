@@ -31,11 +31,18 @@ def get_all() -> list['BaseWidget']:
 def sync_to_db() -> None:
     """Syncs WidgetTypes and provisions FamilyWidget + permissions for all families."""
     from app import db
-    from app.models import WidgetType, FamilyWidget, WidgetUserPermission, Family, UserFamilyRole
+    from app.models import WidgetType, FamilyWidget, Family, UserFamilyRole
+    from app.services.family_service import _create_family_widget, _create_widget_permission
 
+    _sync_widget_types(db)
+    _provision_new_family_widgets(db, WidgetType, FamilyWidget, Family, UserFamilyRole)
+    db.session.commit()
+
+
+def _sync_widget_types(db) -> None:
+    from app.models import WidgetType
     for widget in _registry.values():
-        existing = WidgetType.query.filter_by(key=widget.key).first()
-        if not existing:
+        if not WidgetType.query.filter_by(key=widget.key).first():
             db.session.add(WidgetType(
                 key=widget.key,
                 display_name=widget.display_name,
@@ -43,10 +50,11 @@ def sync_to_db() -> None:
             ))
     db.session.flush()
 
-    all_widget_types = WidgetType.query.all()
-    all_families = Family.query.all()
 
-    for family in all_families:
+def _provision_new_family_widgets(db, WidgetType, FamilyWidget, Family, UserFamilyRole) -> None:
+    all_widget_types = WidgetType.query.all()
+
+    for family in Family.query.all():
         existing_wt_ids = {
             fw.widget_type_id
             for fw in FamilyWidget.query.filter_by(family_id=family.id).all()
@@ -54,27 +62,12 @@ def sync_to_db() -> None:
         for wt in all_widget_types:
             if wt.id in existing_wt_ids:
                 continue
+            fw = _create_family_widget(family.id, wt)
+            _provision_member_permissions(fw, wt.key, family.id, UserFamilyRole)
 
-            fw = FamilyWidget(family_id=family.id, widget_type_id=wt.id)
-            db.session.add(fw)
-            db.session.flush()
 
-            widget_instance = _registry.get(wt.key)
-            members = UserFamilyRole.query.filter_by(family_id=family.id).all()
-            for member in members:
-                role_name = member.role.name if member.role else 'Guest'
-                defaults = (
-                    widget_instance.get_default_permissions(role_name)
-                    if widget_instance
-                    else {'can_view': True, 'can_edit': False}
-                )
-                if role_name == 'Familyadmin':
-                    defaults['can_view'] = True
-                db.session.add(WidgetUserPermission(
-                    family_widget_id=fw.id,
-                    user_id=member.user_id,
-                    can_view=defaults['can_view'],
-                    can_edit=defaults['can_edit'],
-                ))
-
-    db.session.commit()
+def _provision_member_permissions(fw, widget_key: str, family_id: int, UserFamilyRole) -> None:
+    from app.services.family_service import _create_widget_permission
+    for member in UserFamilyRole.query.filter_by(family_id=family_id).all():
+        role_name = member.role.name if member.role else 'Guest'
+        _create_widget_permission(fw.id, member.user_id, role_name, widget_key)
