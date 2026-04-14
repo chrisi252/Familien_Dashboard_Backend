@@ -2,7 +2,7 @@
 import pytest
 
 from app.services.family_service import FamilyService
-from app.models import UserFamilyRole, FamilyWidget, WidgetUserPermission
+from app.models import UserFamilyRole, FamilyWidget, WidgetUserPermission, UserWidgetConfig
 from tests.conftest import make_user, make_family, assign_role
 
 
@@ -126,6 +126,62 @@ class TestRemoveUserFromFamily:
 
         with pytest.raises(ValueError, match='not a member'):
             FamilyService.remove_user_from_family(stranger.id, family.id)
+
+    def test_removes_widget_permissions(self, db_transaction):
+        admin = make_user(username='admin')
+        family = FamilyService.create_family('Familie', admin.id)
+        guest = make_user(username='guest')
+        FamilyService.add_user_to_family(guest.id, family.id)
+
+        family_widget_ids = [fw.id for fw in FamilyWidget.query.filter_by(family_id=family.id).all()]
+        perms_before = WidgetUserPermission.query.filter(
+            WidgetUserPermission.user_id == guest.id,
+            WidgetUserPermission.family_widget_id.in_(family_widget_ids),
+        ).count()
+        assert perms_before > 0
+
+        FamilyService.remove_user_from_family(guest.id, family.id)
+
+        perms_after = WidgetUserPermission.query.filter(
+            WidgetUserPermission.user_id == guest.id,
+            WidgetUserPermission.family_widget_id.in_(family_widget_ids),
+        ).count()
+        assert perms_after == 0
+
+    def test_removes_widget_configs(self, db_transaction):
+        admin = make_user(username='admin')
+        family = FamilyService.create_family('Familie', admin.id)
+        guest = make_user(username='guest')
+        FamilyService.add_user_to_family(guest.id, family.id)
+
+        fw = FamilyWidget.query.filter_by(family_id=family.id).first()
+        db_transaction.session.add(UserWidgetConfig(
+            user_id=guest.id, family_widget_id=fw.id, position=0, grid_col=1, grid_row=1,
+        ))
+        db_transaction.session.flush()
+
+        FamilyService.remove_user_from_family(guest.id, family.id)
+
+        configs = UserWidgetConfig.query.filter_by(user_id=guest.id, family_widget_id=fw.id).count()
+        assert configs == 0
+
+    def test_does_not_remove_other_family_permissions(self, db_transaction):
+        admin_a = make_user(username='admin_a')
+        admin_b = make_user(username='admin_b')
+        family_a = FamilyService.create_family('FamilieA', admin_a.id)
+        family_b = FamilyService.create_family('FamilieB', admin_b.id)
+        guest = make_user(username='guest')
+        FamilyService.add_user_to_family(guest.id, family_a.id)
+        FamilyService.add_user_to_family(guest.id, family_b.id)
+
+        FamilyService.remove_user_from_family(guest.id, family_a.id)
+
+        family_b_widget_ids = [fw.id for fw in FamilyWidget.query.filter_by(family_id=family_b.id).all()]
+        perms_b = WidgetUserPermission.query.filter(
+            WidgetUserPermission.user_id == guest.id,
+            WidgetUserPermission.family_widget_id.in_(family_b_widget_ids),
+        ).count()
+        assert perms_b > 0
 
 
 class TestIsMember:

@@ -24,6 +24,8 @@ class TodoService:
         todo = Todo.query.filter_by(id=todo_id, family_id=family_id).first()
         if not todo:
             raise ValueError('Todo not found')
+        if 'title' in kwargs and (not kwargs['title'] or not kwargs['title'].strip()):
+            raise ValueError('Title is required')
         for field in ('title', 'description', 'is_completed'):
             if field in kwargs:
                 setattr(todo, field, kwargs[field])

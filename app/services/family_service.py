@@ -2,7 +2,7 @@ import secrets
 from datetime import datetime, timedelta
 
 from app import db
-from app.models import Family, UserFamilyRole, Role, User, FamilyWidget, WidgetUserPermission, WidgetType, FamilyInviteCode
+from app.models import Family, UserFamilyRole, Role, User, FamilyWidget, WidgetUserPermission, WidgetType, FamilyInviteCode, UserWidgetConfig
 
 _CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'  # ohne 0/O/I/1 zur Verwechslungsvermeidung
 _INVITE_CODE_LENGTH = 6
@@ -99,6 +99,19 @@ class FamilyService:
         if not membership:
             raise ValueError('User is not a member of this family')
         try:
+            family_widget_ids = [
+                fw.id for fw in FamilyWidget.query.filter_by(family_id=family_id).all()
+            ]
+            if family_widget_ids:
+                WidgetUserPermission.query.filter(
+                    WidgetUserPermission.user_id == user_id,
+                    WidgetUserPermission.family_widget_id.in_(family_widget_ids),
+                ).delete(synchronize_session=False)
+                UserWidgetConfig.query.filter(
+                    UserWidgetConfig.user_id == user_id,
+                    UserWidgetConfig.family_widget_id.in_(family_widget_ids),
+                ).delete(synchronize_session=False)
+
             db.session.delete(membership)
             db.session.commit()
         except Exception:

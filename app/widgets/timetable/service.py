@@ -111,7 +111,13 @@ class TimetableService:
         if entry.start_time >= entry.end_time:
             raise ValueError('start_time must be before end_time')
 
-        for field in ('subject', 'room', 'teacher', 'note'):
+        if 'subject' in data:
+            subject = (data['subject'] or '').strip()
+            if not subject:
+                raise ValueError('subject is required')
+            entry.subject = subject
+
+        for field in ('room', 'teacher', 'note'):
             if field in data:
                 setattr(entry, field, data[field])
 

@@ -30,25 +30,6 @@ def create_family():
         return jsonify({'error': 'Failed to create family', 'details': str(e)}), 500
 
 
-@family_bp.route('/<int:family_id>/join', methods=['POST'])
-@jwt_required()
-def join_family(family_id):
-    try:
-        current_user_id = int(get_jwt_identity())
-
-        user_family_role = FamilyService.add_user_to_family(
-            current_user_id,
-            family_id
-        )
-
-        return jsonify(user_family_role.to_dict()), 200
-
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
-    except Exception as e:
-        return jsonify({'error': 'Failed to join family', 'details': str(e)}), 500
-
-
 @family_bp.route('', methods=['GET'])
 @jwt_required()
 def get_families():

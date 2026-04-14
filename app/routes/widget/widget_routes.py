@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.services import WidgetService
+from app.services import WidgetService, FamilyService
 from app.utils import require_family_admin
 
 widget_bp = Blueprint('widget', __name__, url_prefix='/api/families')
@@ -11,6 +11,8 @@ widget_bp = Blueprint('widget', __name__, url_prefix='/api/families')
 def get_widgets(family_id):
     try:
         user_id = int(get_jwt_identity())
+        if not FamilyService.is_member(user_id, family_id):
+            return jsonify({'error': 'Access denied'}), 403
         widgets = WidgetService.get_widgets_for_user(family_id, user_id)
         return jsonify({'widgets': widgets}), 200
     except Exception as e:
@@ -58,6 +60,8 @@ def update_user_permission(family_id, family_widget_id, user_id):
 def update_layout(family_id):
     try:
         user_id = int(get_jwt_identity())
+        if not FamilyService.is_member(user_id, family_id):
+            return jsonify({'error': 'Access denied'}), 403
         data = request.get_json()
         if not data or 'layout' not in data:
             return jsonify({'error': 'No layout data provided'}), 400

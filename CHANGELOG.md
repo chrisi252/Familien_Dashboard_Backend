@@ -55,6 +55,36 @@ All API error messages are now consistently in English. If the frontend displays
 
 ---
 
+## Bug Fixes
+
+### CRITICAL: Open join endpoint removed
+
+`POST /api/families/{family_id}/join` allowed any authenticated user to join any family without authorization. This endpoint has been removed — families can now only be joined via invite code (`POST /api/families/join-by-code`).
+
+**Action required:** If the frontend uses the `/join` endpoint, switch to `/join-by-code`.
+
+### CRITICAL: Missing authorization on widget routes
+
+`GET /api/families/{family_id}/widgets` and `PUT /api/families/{family_id}/widgets/layout` had no family membership check. Any authenticated user could read widget lists or write layout configs for families they weren't a member of. Both routes now verify membership before proceeding.
+
+### Empty title/subject allowed on update
+
+`PUT /api/families/{family_id}/todos/{todo_id}` accepted empty `title` values. `PUT /api/families/{family_id}/timetable/entries/{entry_id}` accepted empty `subject` values. Both now validate and reject empty required fields, consistent with their create endpoints.
+
+### User removal now cleans up widget permissions and configs
+
+Previously, removing a user from a family (`remove_user_from_family`) only deleted the `UserFamilyRole` row. `WidgetUserPermission` and `UserWidgetConfig` rows for that user in that family remained as orphans in the database.
+
+**Fixed:** `remove_user_from_family()` now deletes all `WidgetUserPermission` and `UserWidgetConfig` entries for the removed user within that family before deleting the membership. Permissions/configs in other families are not affected.
+
+### Unused calendar tables removed
+
+Migration `686141490578_calendar.py` created `calendar_events` and `calendar_event_visibility` tables, but no Python models, services, or routes existed for them. The `created_by` FK also lacked `ondelete`, which would have caused FK violations when deleting users.
+
+**Fixed:** New migration `e1a2b3c4d5f6` drops both tables. The downgrade restores them if needed.
+
+---
+
 ## Internal Refactoring (no frontend impact)
 
 ### Clean Code
