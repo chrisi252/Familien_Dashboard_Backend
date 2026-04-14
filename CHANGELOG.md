@@ -1,6 +1,8 @@
-# Backend API Changes — Breaking Changes for Frontend
+# Backend Changelog
 
-## Weather Widget URL Change
+## Breaking Changes for Frontend
+
+### Weather Widget URL Change
 
 The weather widget URLs have moved from a standalone prefix to the `/api/families` namespace for consistency with all other widgets.
 
@@ -10,7 +12,7 @@ The weather widget URLs have moved from a standalone prefix to the `/api/familie
 | `GET /api/weather/{familyId}/location` | `GET /api/families/{familyId}/weather/location` |
 | `PUT /api/weather/{familyId}/location` | `PUT /api/families/{familyId}/weather/location` |
 
-**Action required:** Update `weather-service.ts` to use the new paths:
+**Action required:** Update `weather-service.ts`:
 
 ```ts
 // Before
@@ -24,19 +26,15 @@ this.http.get<...>(`${this.apiUrl}/families/${familyId}/weather/location`);
 this.http.put<void>(`${this.apiUrl}/families/${familyId}/weather/location`, { city });
 ```
 
-## Health Check URL Change
+### Health Check URL Change
 
 | Old URL | New URL |
 |---------|---------|
 | `GET /api/example/health` | `GET /api/health` |
 
-If the frontend calls the health endpoint, update the path.
+### Error Messages — All English
 
-## Error Messages — All English
-
-All API error messages are now in English. If the frontend displays error strings from the `error` field directly to the user, they will now appear in English instead of the previous German/English mix.
-
-Examples:
+All API error messages are now consistently in English. If the frontend displays `error` strings directly or matches on them, they need to be updated.
 
 | Before | After |
 |--------|-------|
@@ -55,8 +53,32 @@ Examples:
 | `Admin-Account erstellt` | `Admin account created` |
 | `Familie erfolgreich gelöscht` | `Family deleted successfully` |
 
-If the frontend matches on specific error strings (e.g. to show translated messages), those need to be updated.
+---
 
-## No Other Route Changes
+## Internal Refactoring (no frontend impact)
 
-All other endpoints remain unchanged. Request/response schemas are identical.
+### Clean Code
+
+- **Duplicate widget permission logic** extracted into `_create_widget_permission()` and `_create_family_widget()` in `family_service.py`, reused by `registry.py`
+- **Long functions split**: `create_family()`, `add_user_to_family()`, `fetch_weather()`, `sync_to_db()`, `create_app()`
+- **Widget registration** moved from `widget.py` side-effect to explicit `register()` call in each widget's `__init__.py`
+- **`example/` route directory removed** — health check integrated into `main_bp`
+- **Dead exports removed** — `TodoService`, `WeatherService`, `TimetableService` no longer exported from widget `__init__.py`
+- **Loose docs removed** — `database.md`, `frontend.md` deleted from project root
+- **Redundant `can_view=True` override** removed from `_create_widget_permission()` (already returned by `get_default_permissions`)
+- **`UserService.create_user()`** now accepts `is_system_admin` parameter — `admin_routes.py` no longer bypasses the service layer
+- **Decorator imports** moved to module level in `decorators.py`
+- **`registry.py` simplified** — 4 helper functions with model parameters collapsed into a flat `sync_to_db()`
+- **Variable shadowing fix** — `_register_widgets(app)` renamed parameter to `flask_app` to avoid `import app.widgets.*` overwriting the Flask instance
+
+### Build & Deployment
+
+- **`.dockerignore` added** — excludes `.venv/`, `.git/`, `tests/`, `__pycache__/`, `*.md` from image
+- **Dockerfile optimized** — `pip install uv` replaced with `COPY --from=ghcr.io/astral-sh/uv:latest` (faster, no pip needed). `FLASK_APP` set as ENV. Healthcheck added
+- **`pyproject.toml` cleaned** — `pytest` moved from production to dev dependencies. Unused `postgres` package removed
+- **`docker-compose.yml`** — healthcheck added for backend service (`/api/health`, 30s interval, 15s start period)
+
+### Tests
+
+- All error message assertions updated to match new English messages
+- Weather tests now mock `OPENWEATHER_API_KEY` environment variable

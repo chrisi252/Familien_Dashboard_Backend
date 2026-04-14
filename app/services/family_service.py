@@ -193,8 +193,6 @@ def _create_widget_permission(family_widget_id: int, user_id: int, role_name: st
         if widget_instance
         else {'can_view': True, 'can_edit': False}
     )
-    if role_name == 'Familyadmin':
-        defaults['can_view'] = True
     db.session.add(WidgetUserPermission(
         family_widget_id=family_widget_id,
         user_id=user_id,

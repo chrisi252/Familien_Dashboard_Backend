@@ -1,0 +1,13 @@
+.venv/
+.git/
+.gitignore
+.env
+.coverage
+.pytest_cache/
+.claude/
+__pycache__/
+*.pyc
+tests/
+docs/
+*.md
+pyrightconfig.json

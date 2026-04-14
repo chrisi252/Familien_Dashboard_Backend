@@ -2,7 +2,7 @@
 from functools import wraps
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity
-from app.models import UserFamilyRole, User
+from app.models import UserFamilyRole, User, FamilyWidget, WidgetType, WidgetUserPermission
 
 
 def require_family_admin(f):
@@ -51,8 +51,6 @@ def require_widget_permission(permission: str):
     def decorator(f):
         @wraps(f)
         def decorated(family_id, *args, **kwargs):
-            from app.models import FamilyWidget, WidgetType, WidgetUserPermission
-
             user_id = int(get_jwt_identity())
 
             membership = UserFamilyRole.query.filter_by(

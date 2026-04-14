@@ -89,7 +89,7 @@ class TestAddUserToFamily:
         admin = make_user(username='admin')
         family = FamilyService.create_family('Familie', admin.id)
 
-        with pytest.raises(ValueError, match='already member'):
+        with pytest.raises(ValueError, match='already a member'):
             FamilyService.add_user_to_family(admin.id, family.id)
 
     def test_unknown_user_raises(self, db_transaction):
@@ -124,7 +124,7 @@ class TestRemoveUserFromFamily:
         family = FamilyService.create_family('Familie', admin.id)
         stranger = make_user(username='stranger')
 
-        with pytest.raises(ValueError, match='not member'):
+        with pytest.raises(ValueError, match='not a member'):
             FamilyService.remove_user_from_family(stranger.id, family.id)
 
 

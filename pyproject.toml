@@ -10,17 +10,16 @@ dependencies = [
     "flask-jwt-extended>=4.7.1",
     "flask-migrate>=4.1.0",
     "flask-sqlalchemy>=3.1.1",
-    "postgres>=4.0",
     "psycopg>=3.3.3",
     "psycopg2-binary>=2.9.11",
     "pyjwt>=2.11.0",
     "python-dotenv>=1.2.1",
     "gunicorn>=23.0.0",
     "requests>=2.32.0",
-    "pytest>=9.0.2",
 ]
 
 [dependency-groups]
 dev = [
+    "pytest>=9.0.2",
     "pytest-cov>=7.1.0",
 ]

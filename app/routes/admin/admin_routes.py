@@ -33,11 +33,8 @@ def create_admin_account():
             password=data.get('password'),
             first_name=data.get('first_name'),
             last_name=data.get('last_name'),
+            is_system_admin=True,
         )
-
-        from app import db
-        user.is_system_admin = True
-        db.session.commit()
 
         return jsonify({'message': 'Admin account created', 'user': user.to_dict()}), 201
 

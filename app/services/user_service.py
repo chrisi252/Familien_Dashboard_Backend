@@ -10,7 +10,7 @@ class UserService:
         return User.query.get(user_id)
 
     @staticmethod
-    def create_user(username, password, first_name, last_name, is_active=True):
+    def create_user(username, password, first_name, last_name, is_active=True, is_system_admin=False):
         if not username or not username.strip():
             raise ValueError('Username is required')
         if not password:
@@ -29,7 +29,8 @@ class UserService:
             password_hash=generate_password_hash(password),
             first_name=first_name.strip(),
             last_name=last_name.strip(),
-            is_active=bool(is_active)
+            is_active=bool(is_active),
+            is_system_admin=bool(is_system_admin),
         )
 
         try:

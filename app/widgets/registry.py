@@ -34,13 +34,6 @@ def sync_to_db() -> None:
     from app.models import WidgetType, FamilyWidget, Family, UserFamilyRole
     from app.services.family_service import _create_family_widget, _create_widget_permission
 
-    _sync_widget_types(db)
-    _provision_new_family_widgets(db, WidgetType, FamilyWidget, Family, UserFamilyRole)
-    db.session.commit()
-
-
-def _sync_widget_types(db) -> None:
-    from app.models import WidgetType
     for widget in _registry.values():
         if not WidgetType.query.filter_by(key=widget.key).first():
             db.session.add(WidgetType(
@@ -50,10 +43,7 @@ def _sync_widget_types(db) -> None:
             ))
     db.session.flush()
 
-
-def _provision_new_family_widgets(db, WidgetType, FamilyWidget, Family, UserFamilyRole) -> None:
     all_widget_types = WidgetType.query.all()
-
     for family in Family.query.all():
         existing_wt_ids = {
             fw.widget_type_id
@@ -63,11 +53,8 @@ def _provision_new_family_widgets(db, WidgetType, FamilyWidget, Family, UserFami
             if wt.id in existing_wt_ids:
                 continue
             fw = _create_family_widget(family.id, wt)
-            _provision_member_permissions(fw, wt.key, family.id, UserFamilyRole)
+            for member in UserFamilyRole.query.filter_by(family_id=family.id).all():
+                role_name = member.role.name if member.role else 'Guest'
+                _create_widget_permission(fw.id, member.user_id, role_name, wt.key)
 
-
-def _provision_member_permissions(fw, widget_key: str, family_id: int, UserFamilyRole) -> None:
-    from app.services.family_service import _create_widget_permission
-    for member in UserFamilyRole.query.filter_by(family_id=family_id).all():
-        role_name = member.role.name if member.role else 'Guest'
-        _create_widget_permission(fw.id, member.user_id, role_name, widget_key)
+    db.session.commit()

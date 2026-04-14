@@ -65,12 +65,12 @@ class TestCreateTodo:
 
     def test_empty_title_raises(self, db_transaction):
         family = make_family()
-        with pytest.raises(ValueError, match='Titel'):
+        with pytest.raises(ValueError, match='Title'):
             TodoService.create_todo(family.id, '')
 
     def test_whitespace_only_title_raises(self, db_transaction):
         family = make_family()
-        with pytest.raises(ValueError, match='Titel'):
+        with pytest.raises(ValueError, match='Title'):
             TodoService.create_todo(family.id, '   ')
 
     def test_creates_todo_with_description(self, db_transaction):
@@ -103,12 +103,12 @@ class TestUpdateTodo:
         family_b = make_family(name='B')
         todo = TodoService.create_todo(family_a.id, 'Geheimnis')
 
-        with pytest.raises(ValueError, match='Todo nicht gefunden'):
+        with pytest.raises(ValueError, match='Todo not found'):
             TodoService.update_todo(todo.id, family_b.id, is_completed=True)
 
     def test_unknown_todo_raises(self, db_transaction):
         family = make_family()
-        with pytest.raises(ValueError, match='Todo nicht gefunden'):
+        with pytest.raises(ValueError, match='Todo not found'):
             TodoService.update_todo(99999, family.id, is_completed=True)
 
 
@@ -128,5 +128,5 @@ class TestDeleteTodo:
         family_b = make_family(name='B')
         todo = TodoService.create_todo(family_a.id, 'Geheimnis')
 
-        with pytest.raises(ValueError, match='Todo nicht gefunden'):
+        with pytest.raises(ValueError, match='Todo not found'):
             TodoService.delete_todo(todo.id, family_b.id)
