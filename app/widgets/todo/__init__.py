@@ -1,4 +1,6 @@
 from .widget import TodoWidget
-from .service import TodoService
+from app.widgets.registry import register
 
-__all__ = ['TodoWidget', 'TodoService']
+register(TodoWidget())
+
+__all__ = ['TodoWidget']

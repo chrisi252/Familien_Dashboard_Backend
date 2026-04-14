@@ -1,4 +1,4 @@
-"""Todo Widget Routes"""
+"""Todo Widget Routen"""
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from app.widgets.todo.service import TodoService

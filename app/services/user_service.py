@@ -12,17 +12,17 @@ class UserService:
     @staticmethod
     def create_user(username, password, first_name, last_name, is_active=True):
         if not username or not username.strip():
-            raise ValueError('Username is required')
+            raise ValueError('Benutzername ist erforderlich')
         if not password:
-            raise ValueError('Password is required')
+            raise ValueError('Passwort ist erforderlich')
         if not first_name or not first_name.strip():
-            raise ValueError('First name is required')
+            raise ValueError('Vorname ist erforderlich')
         if not last_name or not last_name.strip():
-            raise ValueError('Last name is required')
+            raise ValueError('Nachname ist erforderlich')
 
         normalized_username = username.strip()
         if User.query.filter_by(username=normalized_username).first():
-            raise ValueError('Username already exists')
+            raise ValueError('Benutzername existiert bereits')
 
         user = User(
             username=normalized_username,
@@ -44,7 +44,7 @@ class UserService:
     def delete_user(user_id):
         user = User.query.get(user_id)
         if not user:
-            raise ValueError('User not found')
+            raise ValueError('Benutzer nicht gefunden')
 
         try:
             db.session.delete(user)

@@ -1,4 +1,4 @@
-"""Timetable Widget Routes"""
+"""Stundenplan Widget Routen"""
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from app.widgets.timetable.service import TimetableService

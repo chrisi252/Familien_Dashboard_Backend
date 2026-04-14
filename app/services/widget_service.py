@@ -1,4 +1,4 @@
-"""Widget service"""
+"""Widget Service"""
 from app import db
 from app.models import FamilyWidget, WidgetType, WidgetUserPermission, UserWidgetConfig
 
@@ -86,7 +86,7 @@ class WidgetService:
     def update_layout(family_id: int, user_id: int, layout: list[dict]) -> list[dict]:
         """
         layout: [{ family_widget_id, position, grid_col, grid_row }, ...]
-        Replaces all UserWidgetConfig entries for this user+family.
+        Ersetzt alle UserWidgetConfig-Einträge für diesen Benutzer und diese Familie.
         """
         family_widget_ids = {
             fw.id for fw in FamilyWidget.query.filter_by(family_id=family_id).all()

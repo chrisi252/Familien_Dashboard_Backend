@@ -1,6 +1,8 @@
-"""Timetable Model"""
+"""Stundenplan Model"""
 from app import db
 from datetime import datetime
+
+DEFAULT_COLOR = '#3B82F6'
 
 
 class TimetableEntry(db.Model):
@@ -11,7 +13,7 @@ class TimetableEntry(db.Model):
         'families.id', ondelete='CASCADE'), nullable=False)
 
     person_name = db.Column(db.String(100), nullable=False)
-    color = db.Column(db.String(7), nullable=False, default='#3B82F6')  # hex color
+    color = db.Column(db.String(7), nullable=False, default=DEFAULT_COLOR)
 
     weekday = db.Column(db.Integer, nullable=False)  # 0=Mo, 1=Di, 2=Mi, 3=Do, 4=Fr
     start_time = db.Column(db.String(5), nullable=False)  # HH:MM

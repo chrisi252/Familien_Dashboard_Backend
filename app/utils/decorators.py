@@ -1,12 +1,13 @@
-"""Reusable route decorators"""
+"""Wiederverwendbare Routen-Dekoratoren"""
 from functools import wraps
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity
 from app.models import UserFamilyRole, User
+from app.services.family_service import ROLE_ADMIN
 
 
 def require_family_admin(f):
-    """Decorator: erlaubt den Zugriff nur für den Familyadmin der angefragten Familie.
+    """Dekorator: erlaubt den Zugriff nur für den Familyadmin der angefragten Familie.
 
     Muss nach @jwt_required() stehen, da get_jwt_identity() einen aktiven JWT voraussetzt.
     Die Route muss family_id als URL-Parameter haben.
@@ -24,14 +25,14 @@ def require_family_admin(f):
         membership = UserFamilyRole.query.filter_by(
             user_id=user_id, family_id=family_id
         ).first()
-        if not membership or membership.role.name != 'Familyadmin':
+        if not membership or membership.role.name != ROLE_ADMIN:
             return jsonify({'error': 'Nur der Familienadmin hat Zugriff'}), 403
         return f(family_id, *args, **kwargs)
     return decorated
 
 
 def require_widget_permission(permission: str):
-    """Decorator-Factory: prüft ob der User can_view oder can_edit für das Widget hat.
+    """Dekorator-Factory: prüft ob der User can_view oder can_edit für das Widget hat.
 
     Liest den Widget-Key aus request.blueprint — daher muss der Blueprint-Name
     mit BaseWidget.key übereinstimmen.
@@ -87,7 +88,7 @@ def require_widget_permission(permission: str):
 
 
 def require_system_admin(f):
-    """Decorator: erlaubt den Zugriff nur für Systemadministratoren (user.is_system_admin).
+    """Dekorator: erlaubt den Zugriff nur für Systemadministratoren (user.is_system_admin).
 
     Muss nach @jwt_required() stehen.
 

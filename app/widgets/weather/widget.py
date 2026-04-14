@@ -1,6 +1,5 @@
-"""Weather Widget"""
+"""Wetter Widget"""
 from app.widgets.base import BaseWidget
-from app.widgets.registry import register
 
 
 class WeatherWidget(BaseWidget):
@@ -11,6 +10,3 @@ class WeatherWidget(BaseWidget):
     def register_routes(self, flask_app) -> None:
         from .routes import bp
         flask_app.register_blueprint(bp)
-
-
-register(WeatherWidget())

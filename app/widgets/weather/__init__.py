@@ -1,4 +1,6 @@
 from .widget import WeatherWidget
-from .service import WeatherService
+from app.widgets.registry import register
 
-__all__ = ['WeatherWidget', 'WeatherService']
+register(WeatherWidget())
+
+__all__ = ['WeatherWidget']

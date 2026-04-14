@@ -32,7 +32,7 @@ def create_app(test_config=None):
 
 
 # ---------------------------------------------------------------------------
-# Private configuration helpers
+# Private Konfigurationshelferfunktionen
 # ---------------------------------------------------------------------------
 
 def _configure_cors(app: Flask) -> None:
@@ -59,13 +59,14 @@ def _configure_jwt(app: Flask) -> None:
 
 
 def _register_blueprints(app: Flask) -> None:
-    from app.routes import main_bp, example_bp, user_bp, family_bp, widget_bp, admin_bp
-    for bp in (main_bp, example_bp, user_bp, family_bp, widget_bp, admin_bp):
+    from app.routes import main_bp, user_bp, family_bp, widget_bp, admin_bp
+    for bp in (main_bp, user_bp, family_bp, widget_bp, admin_bp):
         app.register_blueprint(bp)
 
 
 def _register_widgets(app: Flask) -> None:
-    # Importing these packages triggers their register() calls via __init__.py side effects.
+    # Jedes Widget-Package registriert sich selbst in seinem __init__.py.
+    # Die Imports lösen diese Registrierung aus.
     import app.widgets.todo  # noqa: F401
     import app.widgets.weather  # noqa: F401
     import app.widgets.timetable  # noqa: F401
@@ -80,16 +81,16 @@ def _register_cli_commands(app: Flask) -> None:
 
     @app.cli.command('sync-widgets')
     def sync_widgets_command():
-        """Sync widget types to DB."""
+        """Widget-Typen mit der Datenbank synchronisieren."""
         sync_to_db()
         _seed_system_admin()
 
 
 def _seed_system_admin():
-    """Create an initial system-admin account if none exists.
+    """Legt einen initialen Systemadmin-Account an, falls noch keiner existiert.
 
-    Reads credentials from ADMIN_USERNAME and ADMIN_PASSWORD env vars.
-    Does nothing if either variable is unset.
+    Liest Zugangsdaten aus den Umgebungsvariablen ADMIN_USERNAME und ADMIN_PASSWORD.
+    Ist eine der Variablen nicht gesetzt, wird kein Account angelegt.
     """
     admin_username = os.environ.get('ADMIN_USERNAME')
     admin_password = os.environ.get('ADMIN_PASSWORD')

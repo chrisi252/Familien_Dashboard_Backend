@@ -29,7 +29,7 @@ def get_all() -> list['BaseWidget']:
 
 
 def sync_to_db() -> None:
-    """Syncs WidgetTypes and provisions FamilyWidget + permissions for all families."""
+    """Synchronisiert WidgetTypes und legt FamilyWidget + Berechtigungen für alle Familien an."""
     from app import db
     from app.models import WidgetType, FamilyWidget, Family, UserFamilyRole
     from app.services.family_service import _create_family_widget, _create_widget_permission

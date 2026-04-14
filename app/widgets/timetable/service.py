@@ -1,7 +1,8 @@
-"""Timetable Widget Service"""
+"""Stundenplan Widget Service"""
 import re
 from app import db
 from app.models import TimetableEntry
+from app.models.timetable import DEFAULT_COLOR
 
 _TIME_RE = re.compile(r'^\d{2}:\d{2}$')
 _COLOR_RE = re.compile(r'^#[0-9A-Fa-f]{6}$')
@@ -48,7 +49,7 @@ class TimetableService:
         start_time = data.get('start_time', '')
         end_time = data.get('end_time', '')
         weekday = data.get('weekday')
-        color = data.get('color', '#3B82F6')
+        color = data.get('color', DEFAULT_COLOR)
 
         if not person_name:
             raise ValueError('person_name ist erforderlich')

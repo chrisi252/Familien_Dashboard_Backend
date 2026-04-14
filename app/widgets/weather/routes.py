@@ -1,14 +1,14 @@
-"""Weather Widget Routes"""
+"""Wetter Widget Routen"""
 import requests
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from app.widgets.weather.service import WeatherService
 from app.utils import require_widget_permission
 
-bp = Blueprint('weather', __name__, url_prefix='/api/weather')
+bp = Blueprint('weather', __name__, url_prefix='/api/families')
 
 
-@bp.route('/<int:family_id>', methods=['GET'])
+@bp.route('/<int:family_id>/weather', methods=['GET'])
 @jwt_required()
 @require_widget_permission('can_view')
 def get_weather(family_id):
@@ -24,7 +24,7 @@ def get_weather(family_id):
         return jsonify({'error': 'Wetterdaten konnten nicht abgerufen werden', 'details': str(e)}), 500
 
 
-@bp.route('/<int:family_id>/location', methods=['GET'])
+@bp.route('/<int:family_id>/weather/location', methods=['GET'])
 @jwt_required()
 @require_widget_permission('can_view')
 def get_location(family_id):
@@ -36,7 +36,7 @@ def get_location(family_id):
         return jsonify({'error': 'Konfiguration konnte nicht abgerufen werden', 'details': str(e)}), 500
 
 
-@bp.route('/<int:family_id>/location', methods=['PUT'])
+@bp.route('/<int:family_id>/weather/location', methods=['PUT'])
 @jwt_required()
 @require_widget_permission('can_edit')
 def update_location(family_id):

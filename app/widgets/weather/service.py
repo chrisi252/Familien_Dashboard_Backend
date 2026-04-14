@@ -1,4 +1,4 @@
-"""Weather service - handles geocoding and weather API calls (OpenWeatherMap)"""
+"""Wetter-Service — kapselt Geocoding und Wetter-API-Aufrufe (OpenWeatherMap)"""
 import logging
 import os
 
@@ -15,14 +15,14 @@ FORECAST_URL = 'https://api.openweathermap.org/data/2.5/forecast'
 
 _WEATHER_UNITS = 'metric'
 _WEATHER_LANG = 'de'
-_FORECAST_ENTRIES = 40  # 5 days × 8 entries per day (3h intervals)
+_FORECAST_ENTRIES = 40  # 5 Tage × 8 Einträge pro Tag (3-Stunden-Intervall)
 _REQUEST_TIMEOUT = 5
 
 
 def _api_key() -> str:
     key = os.environ.get('OPENWEATHER_API_KEY', '')
     if not key:
-        raise RuntimeError('OPENWEATHER_API_KEY is not set')
+        raise RuntimeError('OPENWEATHER_API_KEY ist nicht gesetzt')
     return key
 
 
@@ -30,10 +30,10 @@ class WeatherService:
 
     @staticmethod
     def geocode_city(city_name: str) -> dict:
-        """Resolve a city name to lat/lon via OpenWeatherMap Geocoding API.
+        """Löst einen Stadtnamen in Koordinaten auf (OpenWeatherMap Geocoding API).
 
-        Returns dict with keys: city_name, latitude, longitude
-        Raises ValueError if city not found.
+        Gibt ein Dict mit city_name, latitude, longitude zurück.
+        Wirft ValueError wenn die Stadt nicht gefunden wurde.
         """
         resp = requests.get(
             GEOCODING_URL,
@@ -43,7 +43,7 @@ class WeatherService:
         resp.raise_for_status()
         results = resp.json()
         if not results:
-            raise ValueError(f'City "{city_name}" not found')
+            raise ValueError(f'Stadt "{city_name}" nicht gefunden')
         result = results[0]
         return {
             'city_name': result.get('local_names', {}).get('de') or result.get('name', city_name),
@@ -53,7 +53,7 @@ class WeatherService:
 
     @staticmethod
     def get_or_create_config(family_id: int) -> FamilyWeatherConfig:
-        """Return existing config or create default one for the family."""
+        """Gibt die bestehende Wetterkonfiguration zurück oder legt eine Standardkonfiguration an."""
         config = FamilyWeatherConfig.query.filter_by(family_id=family_id).first()
         if not config:
             config = FamilyWeatherConfig(family_id=family_id)
@@ -96,7 +96,7 @@ class WeatherService:
 
 
 # ---------------------------------------------------------------------------
-# Private helpers
+# Private Hilfsfunktionen
 # ---------------------------------------------------------------------------
 
 def _fetch_current_weather(params: dict) -> dict:
@@ -131,6 +131,7 @@ def _parse_current_weather(data: dict) -> dict:
 
 
 def _build_daily_forecast(entries: list) -> list:
+    """Gruppiert 3-Stunden-Einträge nach Tag und berechnet Tages-Min/Max."""
     daily_map: dict[str, dict] = {}
     for entry in entries:
         date = entry['dt_txt'][:10]

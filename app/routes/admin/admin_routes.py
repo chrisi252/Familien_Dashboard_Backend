@@ -1,4 +1,4 @@
-"""System Admin Routes"""
+"""Systemadmin Routen"""
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from app.utils import require_system_admin
