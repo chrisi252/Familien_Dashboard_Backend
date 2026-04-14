@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from app.utils import require_system_admin
-from app.models import Family, User
+from app.models import Family
 from app.services import UserService
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
@@ -16,7 +16,7 @@ def list_families():
         families = Family.query.order_by(Family.created_at.desc()).all()
         return jsonify({'families': [f.to_dict() for f in families]}), 200
     except Exception as e:
-        return jsonify({'error': 'Familien konnten nicht abgerufen werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to get families', 'details': str(e)}), 500
 
 
 @admin_bp.route('/accounts', methods=['POST'])
@@ -26,7 +26,7 @@ def create_admin_account():
     try:
         data = request.get_json()
         if not data:
-            return jsonify({'error': 'Keine Daten übergeben'}), 400
+            return jsonify({'error': 'No data provided'}), 400
 
         user = UserService.create_user(
             username=data.get('username'),
@@ -39,9 +39,9 @@ def create_admin_account():
         user.is_system_admin = True
         db.session.commit()
 
-        return jsonify({'message': 'Admin-Account erstellt', 'user': user.to_dict()}), 201
+        return jsonify({'message': 'Admin account created', 'user': user.to_dict()}), 201
 
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Admin-Account konnte nicht erstellt werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to create admin account', 'details': str(e)}), 500

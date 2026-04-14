@@ -9,9 +9,6 @@ _INVITE_CODE_LENGTH = 6
 _INVITE_CODE_MAX_RETRIES = 5
 _INVITE_CODE_EXPIRY_MINUTES = 2
 
-ROLE_ADMIN = 'Familyadmin'
-ROLE_GUEST = 'Guest'
-
 
 class FamilyService:
 
@@ -22,13 +19,13 @@ class FamilyService:
     @staticmethod
     def create_family(family_name, creator_user_id):
         if not family_name or not family_name.strip():
-            raise ValueError('Familienname ist erforderlich')
+            raise ValueError('Family name is required')
 
         creator = User.query.get(creator_user_id)
         if not creator:
-            raise ValueError('Benutzer nicht gefunden')
+            raise ValueError('User not found')
 
-        family_admin_role = _get_role_or_raise(ROLE_ADMIN)
+        family_admin_role = _get_role_or_raise('Familyadmin')
 
         family = Family(name=family_name.strip())
         try:
@@ -43,7 +40,7 @@ class FamilyService:
 
             for wt in WidgetType.query.all():
                 fw = _create_family_widget(family.id, wt)
-                _create_widget_permission(fw.id, creator_user_id, ROLE_ADMIN, wt.key)
+                _create_widget_permission(fw.id, creator_user_id, 'Familyadmin', wt.key)
 
             db.session.commit()
             return family
@@ -54,14 +51,14 @@ class FamilyService:
     @staticmethod
     def add_user_to_family(user_id, family_id, role_name=None):
         if role_name is None:
-            role_name = ROLE_GUEST
+            role_name = 'Guest'
 
         _get_user_or_raise(user_id)
         _get_family_or_raise(family_id)
 
         existing = UserFamilyRole.query.filter_by(user_id=user_id, family_id=family_id).first()
         if existing:
-            raise ValueError('Benutzer ist bereits Mitglied dieser Familie')
+            raise ValueError('User is already a member of this family')
 
         role = _get_role_or_raise(role_name)
 
@@ -100,7 +97,7 @@ class FamilyService:
     def remove_user_from_family(user_id, family_id):
         membership = UserFamilyRole.query.filter_by(user_id=user_id, family_id=family_id).first()
         if not membership:
-            raise ValueError('Benutzer ist kein Mitglied dieser Familie')
+            raise ValueError('User is not a member of this family')
         try:
             db.session.delete(membership)
             db.session.commit()
@@ -146,12 +143,12 @@ class FamilyService:
     def join_family_by_code(user_id, code):
         invite = FamilyInviteCode.query.filter_by(code=code.upper().strip()).first()
         if not invite:
-            raise ValueError('Ungültiger Einladungscode')
+            raise ValueError('Invalid invite code')
 
         if invite.is_expired():
             db.session.delete(invite)
             db.session.commit()
-            raise ValueError('Der Einladungscode ist abgelaufen')
+            raise ValueError('Invite code has expired')
 
         return FamilyService.add_user_to_family(user_id, invite.family_id)
 
@@ -163,21 +160,21 @@ class FamilyService:
 def _get_user_or_raise(user_id):
     user = User.query.get(user_id)
     if not user:
-        raise ValueError('Benutzer nicht gefunden')
+        raise ValueError('User not found')
     return user
 
 
 def _get_family_or_raise(family_id):
     family = Family.query.get(family_id)
     if not family:
-        raise ValueError('Familie nicht gefunden')
+        raise ValueError('Family not found')
     return family
 
 
 def _get_role_or_raise(role_name: str) -> Role:
     role = Role.query.filter_by(name=role_name).first()
     if not role:
-        raise ValueError(f'Rolle "{role_name}" nicht in der Datenbank gefunden')
+        raise ValueError(f'Role "{role_name}" not found in database')
     return role
 
 
@@ -196,7 +193,7 @@ def _create_widget_permission(family_widget_id: int, user_id: int, role_name: st
         if widget_instance
         else {'can_view': True, 'can_edit': False}
     )
-    if role_name == ROLE_ADMIN:
+    if role_name == 'Familyadmin':
         defaults['can_view'] = True
     db.session.add(WidgetUserPermission(
         family_widget_id=family_widget_id,
@@ -211,4 +208,4 @@ def _generate_unique_code() -> str:
         code = ''.join(secrets.choice(_CODE_CHARS) for _ in range(_INVITE_CODE_LENGTH))
         if not FamilyInviteCode.query.filter_by(code=code).first():
             return code
-    raise ValueError('Code-Generierung fehlgeschlagen, bitte erneut versuchen')
+    raise ValueError('Code generation failed, please try again')

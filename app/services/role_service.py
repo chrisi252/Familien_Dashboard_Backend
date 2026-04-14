@@ -1,5 +1,4 @@
 from app.models import UserFamilyRole
-from app.services.family_service import ROLE_ADMIN
 
 
 class RoleService:
@@ -16,4 +15,4 @@ class RoleService:
 
     @staticmethod
     def is_family_admin(user_id, family_id):
-        return RoleService.get_user_role(user_id, family_id) == ROLE_ADMIN
+        return RoleService.get_user_role(user_id, family_id) == 'Familyadmin'

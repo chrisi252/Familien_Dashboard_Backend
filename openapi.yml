@@ -425,7 +425,7 @@ paths:
                     type: string
                     example: Familien-Dashboard API aktiv
 
-  /api/example/health:
+  /api/health:
     get:
       summary: Health check
       tags: [Health]
@@ -442,7 +442,7 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Familien-Dashboard API läuft einwandfrei!
+                    example: Familien-Dashboard API läuft einwandfrei
 
   /api/users/register:
     post:
@@ -584,7 +584,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Logout erfolgreich
+                    example: Logout successful
 
   /api/families:
     get:
@@ -1285,7 +1285,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/weather/{family_id}:
+  /api/families/{family_id}/weather:
     get:
       summary: Get current weather and forecast for a family
       description: Requires can_view permission for the weather widget.
@@ -1336,7 +1336,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/weather/{family_id}/location:
+  /api/families/{family_id}/weather/location:
     get:
       summary: Get the configured weather location for a family
       description: Requires can_view permission for the weather widget.
@@ -1405,7 +1405,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Ort erfolgreich aktualisiert
+                    example: Location updated successfully
                   location:
                     $ref: "#/components/schemas/WeatherLocation"
         "400":
@@ -1805,7 +1805,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Admin-Account erstellt
+                    example: Admin account created
                   user:
                     $ref: "#/components/schemas/User"
         "400":

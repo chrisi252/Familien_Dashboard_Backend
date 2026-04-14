@@ -14,11 +14,11 @@ def create_family():
         data = request.get_json()
 
         if not data:
-            return jsonify({'error': 'Keine Daten übergeben'}), 400
+            return jsonify({'error': 'No data provided'}), 400
 
         family_name = data.get('name')
         if not family_name:
-            return jsonify({'error': 'Familienname ist erforderlich'}), 400
+            return jsonify({'error': 'Family name is required'}), 400
 
         family = FamilyService.create_family(family_name, current_user_id)
 
@@ -27,7 +27,7 @@ def create_family():
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Familie konnte nicht erstellt werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to create family', 'details': str(e)}), 500
 
 
 @family_bp.route('/<int:family_id>/join', methods=['POST'])
@@ -46,7 +46,7 @@ def join_family(family_id):
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Beitritt fehlgeschlagen', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to join family', 'details': str(e)}), 500
 
 
 @family_bp.route('', methods=['GET'])
@@ -70,7 +70,7 @@ def get_families():
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Familien konnten nicht abgerufen werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to get families', 'details': str(e)}), 500
 
 
 @family_bp.route('/<int:family_id>', methods=['GET'])
@@ -80,10 +80,10 @@ def get_family(family_id):
         current_user_id = int(get_jwt_identity())
         family = FamilyService.get_family_by_id(family_id)
         if not family:
-            return jsonify({'error': 'Familie nicht gefunden'}), 404
+            return jsonify({'error': 'Family not found'}), 404
 
         if not FamilyService.is_member(current_user_id, family_id):
-            return jsonify({'error': 'Zugriff verweigert'}), 403
+            return jsonify({'error': 'Access denied'}), 403
 
         members = FamilyService.get_family_members(family_id)
 
@@ -95,7 +95,7 @@ def get_family(family_id):
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Familie konnte nicht abgerufen werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to get family', 'details': str(e)}), 500
 
 
 @family_bp.route('/<int:family_id>', methods=['DELETE'])
@@ -105,12 +105,12 @@ def delete_family(family_id):
     try:
         FamilyService.delete_family(family_id)
 
-        return jsonify({'message': 'Familie erfolgreich gelöscht'}), 200
+        return jsonify({'message': 'Family deleted successfully'}), 200
 
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Familie konnte nicht gelöscht werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to delete family', 'details': str(e)}), 500
 
 
 @family_bp.route('/<int:family_id>/invite-code', methods=['POST'])
@@ -123,7 +123,7 @@ def generate_invite_code(family_id):
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Einladungscode konnte nicht erstellt werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to generate invite code', 'details': str(e)}), 500
 
 
 @family_bp.route('/join-by-code', methods=['POST'])
@@ -134,7 +134,7 @@ def join_family_by_code():
         data = request.get_json()
 
         if not data or not data.get('code'):
-            return jsonify({'error': 'Einladungscode ist erforderlich'}), 400
+            return jsonify({'error': 'Invite code is required'}), 400
 
         user_family_role = FamilyService.join_family_by_code(current_user_id, data['code'])
         return jsonify(user_family_role.to_dict()), 200
@@ -142,4 +142,4 @@ def join_family_by_code():
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Beitritt fehlgeschlagen', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to join family', 'details': str(e)}), 500

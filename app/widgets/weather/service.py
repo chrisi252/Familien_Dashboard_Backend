@@ -19,7 +19,7 @@ _REQUEST_TIMEOUT = 5
 def _api_key() -> str:
     key = os.environ.get('OPENWEATHER_API_KEY', '')
     if not key:
-        raise RuntimeError('OPENWEATHER_API_KEY ist nicht gesetzt')
+        raise RuntimeError('OPENWEATHER_API_KEY is not set')
     return key
 
 
@@ -40,7 +40,7 @@ class WeatherService:
         resp.raise_for_status()
         results = resp.json()
         if not results:
-            raise ValueError(f'Stadt "{city_name}" nicht gefunden')
+            raise ValueError(f'City "{city_name}" not found')
         result = results[0]
         return {
             'city_name': result.get('local_names', {}).get('de') or result.get('name', city_name),

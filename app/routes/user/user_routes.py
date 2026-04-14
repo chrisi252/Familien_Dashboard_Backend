@@ -10,7 +10,7 @@ def register():
     try:
         data = request.get_json()
         if not data:
-            return jsonify({'error': 'Keine Daten übergeben'}), 400
+            return jsonify({'error': 'No data provided'}), 400
 
         user = UserService.create_user(
             username=data.get('username'),
@@ -21,7 +21,7 @@ def register():
 
         access_token = create_access_token(identity=str(user.id))
         response = jsonify({
-            'message': 'Registrierung erfolgreich',
+            'message': 'User registered successfully',
             'user': user.to_dict()
         })
         set_access_cookies(response, access_token)
@@ -30,7 +30,7 @@ def register():
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Registrierung fehlgeschlagen', 'details': str(e)}), 500
+        return jsonify({'error': 'Registration failed', 'details': str(e)}), 500
 
 
 @user_bp.route('/login', methods=['POST'])
@@ -38,25 +38,25 @@ def login():
     try:
         data = request.get_json()
         if not data:
-            return jsonify({'error': 'Keine Daten übergeben'}), 400
+            return jsonify({'error': 'No data provided'}), 400
 
         username = data.get('username')
         password = data.get('password')
 
         if not username:
-            return jsonify({'error': 'Benutzername ist erforderlich'}), 400
+            return jsonify({'error': 'Username is required'}), 400
         if not password:
-            return jsonify({'error': 'Passwort ist erforderlich'}), 400
+            return jsonify({'error': 'Password is required'}), 400
 
         user = UserService.get_user_by_username(username)
         if not user:
-            return jsonify({'error': 'Benutzername oder Passwort ungültig'}), 401
+            return jsonify({'error': 'Invalid username or password'}), 401
 
         if not user.is_active:
-            return jsonify({'error': 'Konto ist deaktiviert'}), 403
+            return jsonify({'error': 'Account is inactive'}), 403
 
         if not UserService.verify_password(user, password):
-            return jsonify({'error': 'Benutzername oder Passwort ungültig'}), 401
+            return jsonify({'error': 'Invalid username or password'}), 401
 
         access_token = create_access_token(identity=str(user.id))
 
@@ -70,7 +70,7 @@ def login():
         ]
 
         response = jsonify({
-            'message': 'Login erfolgreich',
+            'message': 'Login successful',
             'user': user.to_dict(),
             'families': families,
         })
@@ -78,7 +78,7 @@ def login():
         return response, 200
 
     except Exception as e:
-        return jsonify({'error': 'Login fehlgeschlagen', 'details': str(e)}), 500
+        return jsonify({'error': 'Login failed', 'details': str(e)}), 500
 
 
 @user_bp.route('/profile', methods=['GET'])
@@ -89,17 +89,17 @@ def get_profile():
         user = UserService.get_user_by_id(current_user_id)
 
         if not user:
-            return jsonify({'error': 'Benutzer nicht gefunden'}), 404
+            return jsonify({'error': 'User not found'}), 404
 
         return jsonify(user.to_dict()), 200
 
     except Exception as e:
-        return jsonify({'error': 'Profil konnte nicht abgerufen werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to get profile', 'details': str(e)}), 500
 
 
 @user_bp.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
-    response = jsonify({'message': 'Logout erfolgreich'})
+    response = jsonify({'message': 'Logout successful'})
     unset_jwt_cookies(response)
     return response, 200

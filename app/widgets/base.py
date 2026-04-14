@@ -13,7 +13,6 @@ class BaseWidget(ABC):
         pass
 
     def get_default_permissions(self, role_name: str) -> dict:
-        from app.services.family_service import ROLE_ADMIN
-        if role_name == ROLE_ADMIN:
+        if role_name == 'Familyadmin':
             return {'can_view': True, 'can_edit': True}
         return {'can_view': True, 'can_edit': False}

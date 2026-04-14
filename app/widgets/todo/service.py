@@ -13,7 +13,7 @@ class TodoService:
     @staticmethod
     def create_todo(family_id: int, title: str, description: str = None) -> Todo:
         if not title or not title.strip():
-            raise ValueError('Titel ist erforderlich')
+            raise ValueError('Title is required')
         todo = Todo(family_id=family_id, title=title.strip(), description=description)
         db.session.add(todo)
         db.session.commit()
@@ -23,7 +23,7 @@ class TodoService:
     def update_todo(todo_id: int, family_id: int, **kwargs) -> Todo:
         todo = Todo.query.filter_by(id=todo_id, family_id=family_id).first()
         if not todo:
-            raise ValueError('Todo nicht gefunden')
+            raise ValueError('Todo not found')
         for field in ('title', 'description', 'is_completed'):
             if field in kwargs:
                 setattr(todo, field, kwargs[field])
@@ -34,6 +34,6 @@ class TodoService:
     def delete_todo(todo_id: int, family_id: int) -> None:
         todo = Todo.query.filter_by(id=todo_id, family_id=family_id).first()
         if not todo:
-            raise ValueError('Todo nicht gefunden')
+            raise ValueError('Todo not found')
         db.session.delete(todo)
         db.session.commit()

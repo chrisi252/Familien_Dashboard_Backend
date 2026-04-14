@@ -53,7 +53,7 @@ class WidgetService:
             id=family_widget_id, family_id=family_id
         ).first()
         if not family_widget:
-            raise ValueError('Widget nicht gefunden')
+            raise ValueError('Widget not found')
 
         return [perm.to_dict() for perm in family_widget.user_permissions]
 
@@ -69,13 +69,13 @@ class WidgetService:
             id=family_widget_id, family_id=family_id
         ).first()
         if not family_widget:
-            raise ValueError('Widget nicht gefunden')
+            raise ValueError('Widget not found')
 
         perm = WidgetUserPermission.query.filter_by(
             family_widget_id=family_widget_id, user_id=user_id
         ).first()
         if not perm:
-            raise ValueError('Permission-Eintrag nicht gefunden')
+            raise ValueError('Permission entry not found')
 
         perm.can_view = can_view
         perm.can_edit = can_edit
@@ -101,7 +101,7 @@ class WidgetService:
         for item in layout:
             fwid = item.get('family_widget_id')
             if fwid not in family_widget_ids:
-                raise ValueError(f'Widget {fwid} gehört nicht zu Familie {family_id}')
+                raise ValueError(f'Widget {fwid} does not belong to family {family_id}')
             cfg = UserWidgetConfig(
                 user_id=user_id,
                 family_widget_id=fwid,

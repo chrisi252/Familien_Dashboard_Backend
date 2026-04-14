@@ -64,7 +64,7 @@ def _register_blueprints(app: Flask) -> None:
         app.register_blueprint(bp)
 
 
-def _register_widgets(app: Flask) -> None:
+def _register_widgets(flask_app: Flask) -> None:
     # Jedes Widget-Package registriert sich selbst in seinem __init__.py.
     # Die Imports lösen diese Registrierung aus.
     import app.widgets.todo  # noqa: F401
@@ -73,7 +73,7 @@ def _register_widgets(app: Flask) -> None:
 
     from app.widgets.registry import get_all
     for widget in get_all():
-        widget.register_routes(app)
+        widget.register_routes(flask_app)
 
 
 def _register_cli_commands(app: Flask) -> None:

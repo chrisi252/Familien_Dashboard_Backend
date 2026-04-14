@@ -11,12 +11,12 @@ _VALID_WEEKDAYS = range(0, 5)
 
 def _validate_time(value: str, field: str) -> None:
     if not _TIME_RE.match(value):
-        raise ValueError(f'{field} muss im Format HH:MM sein')
+        raise ValueError(f'{field} must be in HH:MM format')
 
 
 def _validate_color(value: str) -> None:
     if not _COLOR_RE.match(value):
-        raise ValueError('color muss ein gültiger Hex-Farbwert sein (z.B. #3B82F6)')
+        raise ValueError('color must be a valid hex color (e.g. #3B82F6)')
 
 
 class TimetableService:
@@ -52,15 +52,15 @@ class TimetableService:
         color = data.get('color', DEFAULT_COLOR)
 
         if not person_name:
-            raise ValueError('person_name ist erforderlich')
+            raise ValueError('person_name is required')
         if not subject:
-            raise ValueError('subject ist erforderlich')
+            raise ValueError('subject is required')
         if weekday is None or weekday not in _VALID_WEEKDAYS:
-            raise ValueError('weekday muss 0 (Mo) bis 4 (Fr) sein')
+            raise ValueError('weekday must be 0 (Mon) to 4 (Fri)')
         _validate_time(start_time, 'start_time')
         _validate_time(end_time, 'end_time')
         if start_time >= end_time:
-            raise ValueError('start_time muss vor end_time liegen')
+            raise ValueError('start_time must be before end_time')
         _validate_color(color)
 
         entry = TimetableEntry(
@@ -83,12 +83,12 @@ class TimetableService:
     def update_entry(entry_id: int, family_id: int, data: dict) -> TimetableEntry:
         entry = TimetableEntry.query.filter_by(id=entry_id, family_id=family_id).first()
         if not entry:
-            raise ValueError('Eintrag nicht gefunden')
+            raise ValueError('Entry not found')
 
         if 'person_name' in data:
             person_name = data['person_name'].strip()
             if not person_name:
-                raise ValueError('person_name darf nicht leer sein')
+                raise ValueError('person_name must not be empty')
             entry.person_name = person_name
 
         if 'color' in data:
@@ -97,7 +97,7 @@ class TimetableService:
 
         if 'weekday' in data:
             if data['weekday'] not in _VALID_WEEKDAYS:
-                raise ValueError('weekday muss 0 (Mo) bis 4 (Fr) sein')
+                raise ValueError('weekday must be 0 (Mon) to 4 (Fri)')
             entry.weekday = data['weekday']
 
         if 'start_time' in data:
@@ -109,7 +109,7 @@ class TimetableService:
             entry.end_time = data['end_time']
 
         if entry.start_time >= entry.end_time:
-            raise ValueError('start_time muss vor end_time liegen')
+            raise ValueError('start_time must be before end_time')
 
         for field in ('subject', 'room', 'teacher', 'note'):
             if field in data:
@@ -122,6 +122,6 @@ class TimetableService:
     def delete_entry(entry_id: int, family_id: int) -> None:
         entry = TimetableEntry.query.filter_by(id=entry_id, family_id=family_id).first()
         if not entry:
-            raise ValueError('Eintrag nicht gefunden')
+            raise ValueError('Entry not found')
         db.session.delete(entry)
         db.session.commit()
