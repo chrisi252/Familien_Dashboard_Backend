@@ -13,7 +13,6 @@ class User(db.Model):
     last_name = db.Column(db.String(100), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
     is_system_admin = db.Column(db.Boolean, default=False)
 
     family_roles = db.relationship(

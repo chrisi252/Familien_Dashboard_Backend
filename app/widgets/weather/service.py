@@ -27,11 +27,7 @@ class WeatherService:
 
     @staticmethod
     def geocode_city(city_name: str) -> dict:
-        """Löst einen Stadtnamen in Koordinaten auf (OpenWeatherMap Geocoding API).
-
-        Gibt ein Dict mit city_name, latitude, longitude zurück.
-        Wirft ValueError wenn die Stadt nicht gefunden wurde.
-        """
+        """Löst einen Stadtnamen in Koordinaten auf (OpenWeatherMap Geocoding API)."""
         resp = requests.get(
             GEOCODING_URL,
             params={'q': city_name, 'limit': 1, 'appid': _api_key()},
@@ -54,8 +50,12 @@ class WeatherService:
         config = FamilyWeatherConfig.query.filter_by(family_id=family_id).first()
         if not config:
             config = FamilyWeatherConfig(family_id=family_id)
-            db.session.add(config)
-            db.session.commit()
+            try:
+                db.session.add(config)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                raise
         return config
 
     @staticmethod

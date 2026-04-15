@@ -75,9 +75,13 @@ class TimetableService:
             teacher=data.get('teacher'),
             note=data.get('note'),
         )
-        db.session.add(entry)
-        db.session.commit()
-        return entry
+        try:
+            db.session.add(entry)
+            db.session.commit()
+            return entry
+        except Exception:
+            db.session.rollback()
+            raise
 
     @staticmethod
     def update_entry(entry_id: int, family_id: int, data: dict) -> TimetableEntry:
@@ -121,13 +125,21 @@ class TimetableService:
             if field in data:
                 setattr(entry, field, data[field])
 
-        db.session.commit()
-        return entry
+        try:
+            db.session.commit()
+            return entry
+        except Exception:
+            db.session.rollback()
+            raise
 
     @staticmethod
     def delete_entry(entry_id: int, family_id: int) -> None:
         entry = TimetableEntry.query.filter_by(id=entry_id, family_id=family_id).first()
         if not entry:
             raise ValueError('Entry not found')
-        db.session.delete(entry)
-        db.session.commit()
+        try:
+            db.session.delete(entry)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise

@@ -79,38 +79,43 @@ class WidgetService:
 
         perm.can_view = can_view
         perm.can_edit = can_edit
-        db.session.commit()
-        return perm
+        try:
+            db.session.commit()
+            return perm
+        except Exception:
+            db.session.rollback()
+            raise
 
     @staticmethod
     def update_layout(family_id: int, user_id: int, layout: list[dict]) -> list[dict]:
-        """
-        layout: [{ family_widget_id, position, grid_col, grid_row }, ...]
-        Ersetzt alle UserWidgetConfig-Einträge für diesen Benutzer und diese Familie.
-        """
+        """Ersetzt alle UserWidgetConfig-Einträge für diesen Benutzer und diese Familie."""
         family_widget_ids = {
             fw.id for fw in FamilyWidget.query.filter_by(family_id=family_id).all()
         }
 
-        UserWidgetConfig.query.filter(
-            UserWidgetConfig.user_id == user_id,
-            UserWidgetConfig.family_widget_id.in_(family_widget_ids)
-        ).delete(synchronize_session=False)
+        try:
+            UserWidgetConfig.query.filter(
+                UserWidgetConfig.user_id == user_id,
+                UserWidgetConfig.family_widget_id.in_(family_widget_ids)
+            ).delete(synchronize_session=False)
 
-        new_configs = []
-        for item in layout:
-            fwid = item.get('family_widget_id')
-            if fwid not in family_widget_ids:
-                raise ValueError(f'Widget {fwid} does not belong to family {family_id}')
-            cfg = UserWidgetConfig(
-                user_id=user_id,
-                family_widget_id=fwid,
-                position=item.get('position', 0),
-                grid_col=item.get('grid_col', 1),
-                grid_row=item.get('grid_row', 1),
-            )
-            db.session.add(cfg)
-            new_configs.append(cfg)
+            new_configs = []
+            for item in layout:
+                fwid = item.get('family_widget_id')
+                if fwid not in family_widget_ids:
+                    raise ValueError(f'Widget {fwid} does not belong to family {family_id}')
+                cfg = UserWidgetConfig(
+                    user_id=user_id,
+                    family_widget_id=fwid,
+                    position=item.get('position', 0),
+                    grid_col=item.get('grid_col', 1),
+                    grid_row=item.get('grid_row', 1),
+                )
+                db.session.add(cfg)
+                new_configs.append(cfg)
 
-        db.session.commit()
-        return [c.to_dict() for c in new_configs]
+            db.session.commit()
+            return [c.to_dict() for c in new_configs]
+        except Exception:
+            db.session.rollback()
+            raise

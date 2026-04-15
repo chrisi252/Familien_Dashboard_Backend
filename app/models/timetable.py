@@ -15,9 +15,9 @@ class TimetableEntry(db.Model):
     person_name = db.Column(db.String(100), nullable=False)
     color = db.Column(db.String(7), nullable=False, default=DEFAULT_COLOR)
 
-    weekday = db.Column(db.Integer, nullable=False)  # 0=Mo, 1=Di, 2=Mi, 3=Do, 4=Fr
-    start_time = db.Column(db.String(5), nullable=False)  # HH:MM
-    end_time = db.Column(db.String(5), nullable=False)    # HH:MM
+    weekday = db.Column(db.Integer, nullable=False)
+    start_time = db.Column(db.String(5), nullable=False)
+    end_time = db.Column(db.String(5), nullable=False)
 
     subject = db.Column(db.String(100), nullable=False)
     room = db.Column(db.String(50))
