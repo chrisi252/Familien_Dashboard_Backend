@@ -1,4 +1,4 @@
-"""Todo Widget Routes"""
+"""Todo Widget Routen"""
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from app.widgets.todo.service import TodoService
@@ -14,7 +14,7 @@ def get_todos(family_id):
     try:
         return jsonify({'todos': TodoService.get_todos(family_id)}), 200
     except Exception as e:
-        return jsonify({'error': 'Todos konnten nicht abgerufen werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to get todos', 'details': str(e)}), 500
 
 
 @bp.route('/<int:family_id>/todos', methods=['POST'])
@@ -24,7 +24,7 @@ def create_todo(family_id):
     try:
         data = request.get_json()
         if not data or not data.get('title'):
-            return jsonify({'error': 'Feld "title" ist erforderlich'}), 400
+            return jsonify({'error': 'Field "title" is required'}), 400
         todo = TodoService.create_todo(
             family_id=family_id,
             title=data['title'],
@@ -34,7 +34,7 @@ def create_todo(family_id):
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Todo konnte nicht erstellt werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to create todo', 'details': str(e)}), 500
 
 
 @bp.route('/<int:family_id>/todos/<int:todo_id>', methods=['PUT'])
@@ -44,7 +44,7 @@ def update_todo(family_id, todo_id):
     try:
         data = request.get_json()
         if not data:
-            return jsonify({'error': 'Keine Daten übergeben'}), 400
+            return jsonify({'error': 'No data provided'}), 400
         todo = TodoService.update_todo(todo_id, family_id, **{
             k: data[k] for k in ('title', 'description', 'is_completed') if k in data
         })
@@ -52,7 +52,7 @@ def update_todo(family_id, todo_id):
     except ValueError as e:
         return jsonify({'error': str(e)}), 404
     except Exception as e:
-        return jsonify({'error': 'Todo konnte nicht aktualisiert werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to update todo', 'details': str(e)}), 500
 
 
 @bp.route('/<int:family_id>/todos/<int:todo_id>', methods=['DELETE'])
@@ -61,8 +61,8 @@ def update_todo(family_id, todo_id):
 def delete_todo(family_id, todo_id):
     try:
         TodoService.delete_todo(todo_id, family_id)
-        return jsonify({'message': 'Todo gelöscht'}), 200
+        return jsonify({'message': 'Todo deleted'}), 200
     except ValueError as e:
         return jsonify({'error': str(e)}), 404
     except Exception as e:
-        return jsonify({'error': 'Todo konnte nicht gelöscht werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to delete todo', 'details': str(e)}), 500

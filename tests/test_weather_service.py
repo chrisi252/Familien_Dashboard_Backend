@@ -6,6 +6,8 @@ from app.widgets.weather.service import WeatherService
 from app.models import FamilyWeatherConfig
 from tests.conftest import make_family
 
+_FAKE_API_KEY = patch.dict('os.environ', {'OPENWEATHER_API_KEY': 'test-key'})
+
 
 def _mock_geocode_response(name='Berlin', lat=52.52, lon=13.405):
     mock_resp = MagicMock()
@@ -28,7 +30,6 @@ class TestGetOrCreateConfig:
         family = make_family()
         WeatherService.get_or_create_config(family.id)
 
-        # zweiter Aufruf darf keinen neuen Eintrag anlegen
         config = WeatherService.get_or_create_config(family.id)
         count = FamilyWeatherConfig.query.filter_by(family_id=family.id).count()
 
@@ -38,6 +39,7 @@ class TestGetOrCreateConfig:
 
 class TestUpdateLocation:
 
+    @_FAKE_API_KEY
     def test_saves_geocoded_location(self, db_transaction):
         family = make_family()
 
@@ -49,6 +51,7 @@ class TestUpdateLocation:
         assert config.latitude == 48.137
         assert config.longitude == 11.576
 
+    @_FAKE_API_KEY
     def test_unknown_city_raises(self, db_transaction):
         family = make_family()
 
@@ -58,9 +61,10 @@ class TestUpdateLocation:
             empty_resp.raise_for_status.return_value = None
             mock_get.return_value = empty_resp
 
-            with pytest.raises(ValueError, match='nicht gefunden'):
+            with pytest.raises(ValueError, match='not found'):
                 WeatherService.update_location(family.id, 'Nichtexistenz')
 
+    @_FAKE_API_KEY
     def test_location_is_persisted(self, db_transaction):
         family = make_family()
 
@@ -75,6 +79,7 @@ class TestUpdateLocation:
 
 class TestGeocodeCity:
 
+    @_FAKE_API_KEY
     def test_returns_lat_lon_for_known_city(self, db_transaction):
         with patch('app.widgets.weather.service.requests.get') as mock_get:
             mock_get.return_value = _mock_geocode_response('Berlin', 52.52, 13.405)
@@ -84,6 +89,7 @@ class TestGeocodeCity:
         assert result['longitude'] == 13.405
         assert result['city_name'] == 'Berlin'
 
+    @_FAKE_API_KEY
     def test_prefers_german_local_name(self, db_transaction):
         mock_resp = MagicMock()
         mock_resp.json.return_value = [{

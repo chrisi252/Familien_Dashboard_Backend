@@ -100,6 +100,6 @@ def get_profile():
 @user_bp.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
-    response = jsonify({'message': 'Logout erfolgreich'})
+    response = jsonify({'message': 'Logout successful'})
     unset_jwt_cookies(response)
     return response, 200

@@ -39,7 +39,7 @@ components:
         is_system_admin:
           type: boolean
           example: false
-          description: true wenn der Account Systemadministrator-Rechte hat
+          description: true if the account has system administrator privileges
         created_at:
           type: string
           format: date-time
@@ -131,26 +131,26 @@ components:
           example: Aufgaben
         description:
           type: string
-          example: Gemeinsame Todo-Liste für die Familie
+          example: Shared todo list for the family
         position:
           type: integer
           nullable: true
           example: 0
-          description: Anzeigeposition im Dashboard des Users. null wenn noch nicht konfiguriert.
+          description: Display position in the user's dashboard. null if not yet configured.
         grid_col:
           type: integer
           nullable: true
           example: 2
-          description: Breite in Grid-Spalten. null wenn noch nicht konfiguriert.
+          description: Width in grid columns. null if not yet configured.
         grid_row:
           type: integer
           nullable: true
           example: 1
-          description: Höhe in Grid-Zeilen. null wenn noch nicht konfiguriert.
+          description: Height in grid rows. null if not yet configured.
         can_edit:
           type: boolean
           example: true
-          description: Gibt an ob der anfragende User dieses Widget bearbeiten darf
+          description: Whether the requesting user is allowed to edit this widget
 
     UserWidgetConfig:
       type: object
@@ -257,7 +257,7 @@ components:
           example: 803
         weather_description:
           type: string
-          example: Überwiegend bewölkt
+          example: Mostly cloudy
         icon:
           type: string
           example: 04d
@@ -297,11 +297,11 @@ components:
         color:
           type: string
           example: "#EF4444"
-          description: Hex-Farbwert, z.B. #EF4444
+          description: Hex color value, e.g. #EF4444
         weekday:
           type: integer
           example: 0
-          description: 0=Montag, 1=Dienstag, 2=Mittwoch, 3=Donnerstag, 4=Freitag
+          description: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday
         start_time:
           type: string
           example: "08:00"
@@ -320,11 +320,11 @@ components:
         teacher:
           type: string
           nullable: true
-          example: Herr Müller
+          example: Mr. Smith
         note:
           type: string
           nullable: true
-          example: Hausaufgaben nicht vergessen
+          example: Don't forget homework
         created_at:
           type: string
           format: date-time
@@ -354,14 +354,14 @@ components:
         code:
           type: string
           example: "X7K2BN"
-          description: 6-stelliger Einladungscode (Uppercase, alphanumerisch)
+          description: 6-character invite code (uppercase, alphanumeric)
         created_at:
           type: string
           format: date-time
         expires_at:
           type: string
           format: date-time
-          description: Ablaufzeit (2 Minuten nach Erstellung)
+          description: Expiration time (2 minutes after creation)
 
     AuthResponse:
       type: object
@@ -425,7 +425,7 @@ paths:
                     type: string
                     example: Familien-Dashboard API aktiv
 
-  /api/example/health:
+  /api/health:
     get:
       summary: Health check
       tags: [Health]
@@ -442,7 +442,7 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Familien-Dashboard API läuft einwandfrei!
+                    example: Familien-Dashboard API läuft einwandfrei
 
   /api/users/register:
     post:
@@ -584,7 +584,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Logout erfolgreich
+                    example: Logout successful
 
   /api/families:
     get:
@@ -739,42 +739,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/families/{family_id}/join:
-    post:
-      summary: Join an existing family
-      description: >
-        The authenticated user is added with the Guest role by default.
-        Widget permissions are automatically created for all widgets
-        using each widget's default permissions.
-      tags: [Families]
-      security:
-        - cookieAuth: []
-      parameters:
-        - name: family_id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Joined family successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserFamilyRole"
-        "400":
-          description: User is already a member, or family/user not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
   /api/families/{family_id}/invite-code:
     post:
       summary: Generate a 6-character invite code for a family
@@ -836,7 +800,7 @@ paths:
                 code:
                   type: string
                   example: "X7K2BN"
-                  description: 6-stelliger Einladungscode
+                  description: 6-character invite code
       responses:
         "200":
           description: Joined family successfully
@@ -1285,7 +1249,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/weather/{family_id}:
+  /api/families/{family_id}/weather:
     get:
       summary: Get current weather and forecast for a family
       description: Requires can_view permission for the weather widget.
@@ -1336,7 +1300,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/weather/{family_id}/location:
+  /api/families/{family_id}/weather/location:
     get:
       summary: Get the configured weather location for a family
       description: Requires can_view permission for the weather widget.
@@ -1405,7 +1369,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Ort erfolgreich aktualisiert
+                    example: Location updated successfully
                   location:
                     $ref: "#/components/schemas/WeatherLocation"
         "400":
@@ -1524,7 +1488,7 @@ paths:
   /api/families/{family_id}/timetable/entries:
     post:
       summary: Create a new timetable entry
-      description: Requires can_edit permission. color gilt für alle Einträge dieser Person — beim ersten Eintrag einer neuen Person setzen.
+      description: Requires can_edit permission. The color applies to all entries of a person — set it when creating the first entry for a new person.
       tags: [Timetable]
       security:
         - cookieAuth: []
@@ -1548,11 +1512,11 @@ paths:
                 color:
                   type: string
                   example: "#EF4444"
-                  description: Hex-Farbwert, z.B. #EF4444. Sollte für alle Einträge einer Person gleich sein.
+                  description: Hex color value, e.g. #EF4444. Should be the same for all entries of a person.
                 weekday:
                   type: integer
                   example: 0
-                  description: 0=Montag bis 4=Freitag
+                  description: 0=Monday to 4=Friday
                 start_time:
                   type: string
                   example: "08:00"
@@ -1560,7 +1524,7 @@ paths:
                 end_time:
                   type: string
                   example: "08:45"
-                  description: Format HH:MM, muss nach start_time liegen
+                  description: Format HH:MM, must be after start_time
                 subject:
                   type: string
                   example: Mathematik
@@ -1571,11 +1535,11 @@ paths:
                 teacher:
                   type: string
                   nullable: true
-                  example: Herr Müller
+                  example: Mr. Smith
                 note:
                   type: string
                   nullable: true
-                  example: Hausaufgaben nicht vergessen
+                  example: Don't forget homework
       responses:
         "201":
           description: Entry created
@@ -1805,7 +1769,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Admin-Account erstellt
+                    example: Admin account created
                   user:
                     $ref: "#/components/schemas/User"
         "400":

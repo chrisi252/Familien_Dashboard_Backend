@@ -1,148 +1,145 @@
-# Familien_Dashboard_Backend
+# Familien-Dashboard Backend
 
-# 1. .env-Datei erstellen
+REST API für das Familien-Dashboard. Gebaut mit Flask, PostgreSQL und JWT-Authentifizierung über HTTP-only Cookies.
 
-cp .env
+## Technologie-Stack
 
-# 2. Datenbank starten
+| Komponente | Technologie |
+|---|---|
+| Framework | Flask 3.x |
+| Datenbank | PostgreSQL (via SQLAlchemy + psycopg) |
+| Migrationen | Flask-Migrate (Alembic) |
+| Authentifizierung | JWT in HTTP-only Cookies |
+| Package Manager | [uv](https://docs.astral.sh/uv/) |
 
-podman compose up -d
+## Projektstruktur
 
-# 3. Anwendung starten
+```
+app/
+├── __init__.py          # App-Factory (create_app)
+├── models/              # SQLAlchemy-Modelle
+├── services/            # Business-Logik
+├── routes/              # Blueprint-Router
+│   ├── user/            # /api/users
+│   ├── family/          # /api/families
+│   ├── widget/          # /api/families (Widget-Endpoints)
+│   └── admin/           # /api/admin
+├── widgets/             # Widget-System
+│   ├── base.py          # Abstrakte Basisklasse
+│   ├── registry.py      # Widget-Registrierung & DB-Sync
+│   ├── todo/
+│   ├── weather/
+│   └── timetable/
+└── utils/
+    └── decorators.py
+```
 
-uv run python main.py
-
-#
-
-## Setup
+## Lokaler Start
 
 ### Voraussetzungen
 
 - Python 3.14+
-- Docker und Docker Compose
-- uv (Python Package Manager)
+- [uv](https://docs.astral.sh/uv/) (`pip install uv` oder `brew install uv`)
+- Docker oder Podman
 
-### Installation
+### 1. Umgebungsvariablen konfigurieren
 
-1. **Repository klonen**
+Erstelle eine `.env`-Datei im Backend-Verzeichnis:
 
-   ```bash
-   git clone <repository-url>
-   cd Familien_Dashboard_Backend
-   ```
+```env
+# Datenbank
+POSTGRES_USER=dashboard
+POSTGRES_PASSWORD=password
+POSTGRES_DB=dashboard
+POSTGRES_PORT=5432
+DATABASE_URL=postgresql+psycopg://dashboard:password@localhost:5432/dashboard
 
-2. **Umgebungsvariablen konfigurieren**
+# JWT
+JWT_SECRET_KEY=dein-geheimer-schluessel
 
-   ```bash
-   cp .env.example .env
-   ```
+# Optionale Widgets
+OPENWEATHER_API_KEY=
 
-   Passe die Werte in der `.env`-Datei nach Bedarf an.
-
-3. **Datenbank starten bzw auch builden**
-
-   ```bash
-   docker-compose up -d
-   docker oder podman compose up -d --build backend
-   ```
-
-   Die PostgreSQL-Datenbank läuft nun auf Port 5432.
-
-4. **Python Dependencies installieren**
-
-   ```bash
-   uv sync
-   ```
-
-5. **Anwendung starten**
-   ```bash
-   uv run python main.py
-   ```
-   Der Server läuft auf http://localhost:5000
-
-### Docker Compose Befehle
-
-- **Datenbank starten**: `docker-compose up -d`
-- **Datenbank stoppen**: `docker-compose down`
-- **Datenbank mit Daten löschen**: `docker-compose down -v`
-- **Logs anzeigen**: `docker-compose logs -f postgres`
-- **Status prüfen**: `docker-compose ps`
-
-### Entwicklung
-
-Die Datenbank-Verbindung wird über die `DATABASE_URL` Umgebungsvariable in der `.env`-Datei konfiguriert.
-
-### Database Migrations
-
-Das Projekt nutzt Flask-Migrate (Alembic) für Datenbank-Migrationen.
-
-**Migration erstellen** (nach Model-Änderungen):
-
-```bash
-uv run flask db migrate -m "Beschreibung der Änderung"
+# Initialer Systemadmin (wird beim ersten `sync-widgets` angelegt)
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin
 ```
 
-**Migration anwenden**:
+### 2. Datenbank starten
 
 ```bash
-uv run flask db upgrade
-uv run flask db migrate -m"name"
-uv run flask db upgrade
-```
-(test: docker exec familien_dashboard_backend uv run flask db current)
-
-**Migration rückgängig machen**:
-
-```bash
-uv run flask db downgrade
-```
-
-**Migrations-Historie anzeigen**:
-
-```bash
-uv run flask db history
-```
-
-## Neue Route anlegen
-
-Um eine neue Ressource (z. B. `Task`) anzulegen, folgende Dateien erstellen/bearbeiten:
-
-1. **Model erstellen**: `app/models/task.py`
-2. **Model exportieren**: `app/models/__init__.py`
-3. **Service erstellen**: `app/services/task_service.py`
-4. **Service exportieren**: `app/services/__init__.py`
-5. **Routes erstellen**: `app/routes/task/tasks.py`
-6. **Blueprint exportieren**: `app/routes/task/__init__.py`
-7. **Blueprint in App registrieren**: `app/__init__.py`
-8. **Routes exportieren**: `app/routes/__init__.py`
-
-Danach Migration erstellen und anwenden:
-
-```bash
-uv run flask db migrate -m "Add Task model"
-uv run flask db upgrade
-```
-
-
-## Authorization:
-- frontend -> Login Page -> backend schickt JWT Token zurück
-- frontend speichert JWT Token (z.B. in localStorage)
-- frontend sendet JWT Token in Authorization Header bei API Requests
-- backend validiert JWT Token und gibt Zugriff auf geschützte Ressourcen
-
-# auth
-JWT als cookie schicken und auf strict setzen
-- refresh token für access token
-
-# deploy 
-- docker image auf server (ssh)
-https://flask.palletsprojects.com/en/stable/deploying/uwsgi/
-
-
-# C4 Model
-- docker run -it --rm -p 8080:8080 -v ./docs:/usr/local/structurizr structurizr/structurizr local
-
-
-# Zum starten bei Migrationsproblemen: 
 docker compose up -d
-docker compose exec backend sh -c "FLASK_APP=app uv run python -m flask db upgrade"
+```
+
+### 3. Dependencies installieren
+
+```bash
+uv sync
+```
+
+### 4. Datenbank-Schema anlegen
+
+```bash
+uv run flask db upgrade
+```
+
+### 5. Widgets initialisieren & Systemadmin anlegen
+
+```bash
+uv run flask sync-widgets
+```
+
+### 6. Server starten
+
+```bash
+uv run python main.py
+```
+
+Die API ist unter `http://localhost:5000` erreichbar.
+
+---
+
+## Datenbank-Migrationen
+
+```bash
+# Migration nach Model-Änderungen erstellen
+uv run flask db migrate -m "Beschreibung"
+
+# Migration anwenden
+uv run flask db upgrade
+
+# Migration rückgängig machen
+uv run flask db downgrade
+
+# Aktuellen Stand prüfen
+uv run flask db current
+```
+
+## Tests
+
+```bash
+uv run pytest
+
+# Mit Coverage
+uv run pytest --cov=app
+```
+
+## Neue Ressource anlegen
+
+1. Model → `app/models/<name>.py` + Export in `app/models/__init__.py`
+2. Service → `app/services/<name>_service.py` + Export in `app/services/__init__.py`
+3. Routes → `app/routes/<name>/<name>_routes.py` + Blueprint registrieren in `app/__init__.py`
+4. Migration erstellen und anwenden
+
+## Authentifizierung
+
+Login gibt ein JWT als HTTP-only Cookie zurück. Das Cookie wird bei allen folgenden Requests automatisch mitgeschickt — kein manuelles Setzen von Headern nötig.
+
+## Docker Compose
+
+```bash
+docker compose up -d          # Datenbank starten
+docker compose down           # Datenbank stoppen
+docker compose down -v        # Datenbank inkl. Daten löschen
+docker compose logs -f        # Logs verfolgen
+```

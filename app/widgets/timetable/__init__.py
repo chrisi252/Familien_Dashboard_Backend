@@ -1,4 +1,6 @@
 from .widget import TimetableWidget
-from .service import TimetableService
+from app.widgets.registry import register
 
-__all__ = ['TimetableWidget', 'TimetableService']
+register(TimetableWidget())
+
+__all__ = ['TimetableWidget']

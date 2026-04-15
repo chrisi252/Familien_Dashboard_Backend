@@ -1,14 +1,14 @@
-"""Weather Widget Routes"""
+"""Wetter Widget Routen"""
 import requests
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from app.widgets.weather.service import WeatherService
 from app.utils import require_widget_permission
 
-bp = Blueprint('weather', __name__, url_prefix='/api/weather')
+bp = Blueprint('weather', __name__, url_prefix='/api/families')
 
 
-@bp.route('/<int:family_id>', methods=['GET'])
+@bp.route('/<int:family_id>/weather', methods=['GET'])
 @jwt_required()
 @require_widget_permission('can_view')
 def get_weather(family_id):
@@ -17,14 +17,14 @@ def get_weather(family_id):
         return jsonify(weather_data), 200
 
     except requests.exceptions.RequestException as e:
-        return jsonify({'error': 'Wetter-API nicht erreichbar', 'details': str(e)}), 502
+        return jsonify({'error': 'Weather API unreachable', 'details': str(e)}), 502
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Wetterdaten konnten nicht abgerufen werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to get weather data', 'details': str(e)}), 500
 
 
-@bp.route('/<int:family_id>/location', methods=['GET'])
+@bp.route('/<int:family_id>/weather/location', methods=['GET'])
 @jwt_required()
 @require_widget_permission('can_view')
 def get_location(family_id):
@@ -33,27 +33,27 @@ def get_location(family_id):
         return jsonify({'location': config.to_dict()}), 200
 
     except Exception as e:
-        return jsonify({'error': 'Konfiguration konnte nicht abgerufen werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to get configuration', 'details': str(e)}), 500
 
 
-@bp.route('/<int:family_id>/location', methods=['PUT'])
+@bp.route('/<int:family_id>/weather/location', methods=['PUT'])
 @jwt_required()
 @require_widget_permission('can_edit')
 def update_location(family_id):
     try:
         data = request.get_json()
         if not data or not data.get('city'):
-            return jsonify({'error': 'Feld "city" ist erforderlich'}), 400
+            return jsonify({'error': 'Field "city" is required'}), 400
 
         config = WeatherService.update_location(family_id, data['city'].strip())
         return jsonify({
-            'message': 'Ort erfolgreich aktualisiert',
+            'message': 'Location updated successfully',
             'location': config.to_dict()
         }), 200
 
     except requests.exceptions.RequestException as e:
-        return jsonify({'error': 'Geocoding-API nicht erreichbar', 'details': str(e)}), 502
+        return jsonify({'error': 'Geocoding API unreachable', 'details': str(e)}), 502
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Ort konnte nicht aktualisiert werden', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to update location', 'details': str(e)}), 500

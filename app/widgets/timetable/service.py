@@ -1,7 +1,8 @@
-"""Timetable Widget Service"""
+"""Stundenplan Widget Service"""
 import re
 from app import db
 from app.models import TimetableEntry
+from app.models.timetable import DEFAULT_COLOR
 
 _TIME_RE = re.compile(r'^\d{2}:\d{2}$')
 _COLOR_RE = re.compile(r'^#[0-9A-Fa-f]{6}$')
@@ -10,12 +11,12 @@ _VALID_WEEKDAYS = range(0, 5)
 
 def _validate_time(value: str, field: str) -> None:
     if not _TIME_RE.match(value):
-        raise ValueError(f'{field} muss im Format HH:MM sein')
+        raise ValueError(f'{field} must be in HH:MM format')
 
 
 def _validate_color(value: str) -> None:
     if not _COLOR_RE.match(value):
-        raise ValueError('color muss ein gültiger Hex-Farbwert sein (z.B. #3B82F6)')
+        raise ValueError('color must be a valid hex color (e.g. #3B82F6)')
 
 
 class TimetableService:
@@ -48,18 +49,18 @@ class TimetableService:
         start_time = data.get('start_time', '')
         end_time = data.get('end_time', '')
         weekday = data.get('weekday')
-        color = data.get('color', '#3B82F6')
+        color = data.get('color', DEFAULT_COLOR)
 
         if not person_name:
-            raise ValueError('person_name ist erforderlich')
+            raise ValueError('person_name is required')
         if not subject:
-            raise ValueError('subject ist erforderlich')
+            raise ValueError('subject is required')
         if weekday is None or weekday not in _VALID_WEEKDAYS:
-            raise ValueError('weekday muss 0 (Mo) bis 4 (Fr) sein')
+            raise ValueError('weekday must be 0 (Mon) to 4 (Fri)')
         _validate_time(start_time, 'start_time')
         _validate_time(end_time, 'end_time')
         if start_time >= end_time:
-            raise ValueError('start_time muss vor end_time liegen')
+            raise ValueError('start_time must be before end_time')
         _validate_color(color)
 
         entry = TimetableEntry(
@@ -74,20 +75,24 @@ class TimetableService:
             teacher=data.get('teacher'),
             note=data.get('note'),
         )
-        db.session.add(entry)
-        db.session.commit()
-        return entry
+        try:
+            db.session.add(entry)
+            db.session.commit()
+            return entry
+        except Exception:
+            db.session.rollback()
+            raise
 
     @staticmethod
     def update_entry(entry_id: int, family_id: int, data: dict) -> TimetableEntry:
         entry = TimetableEntry.query.filter_by(id=entry_id, family_id=family_id).first()
         if not entry:
-            raise ValueError('Eintrag nicht gefunden')
+            raise ValueError('Entry not found')
 
         if 'person_name' in data:
             person_name = data['person_name'].strip()
             if not person_name:
-                raise ValueError('person_name darf nicht leer sein')
+                raise ValueError('person_name must not be empty')
             entry.person_name = person_name
 
         if 'color' in data:
@@ -96,7 +101,7 @@ class TimetableService:
 
         if 'weekday' in data:
             if data['weekday'] not in _VALID_WEEKDAYS:
-                raise ValueError('weekday muss 0 (Mo) bis 4 (Fr) sein')
+                raise ValueError('weekday must be 0 (Mon) to 4 (Fri)')
             entry.weekday = data['weekday']
 
         if 'start_time' in data:
@@ -108,19 +113,33 @@ class TimetableService:
             entry.end_time = data['end_time']
 
         if entry.start_time >= entry.end_time:
-            raise ValueError('start_time muss vor end_time liegen')
+            raise ValueError('start_time must be before end_time')
 
-        for field in ('subject', 'room', 'teacher', 'note'):
+        if 'subject' in data:
+            subject = (data['subject'] or '').strip()
+            if not subject:
+                raise ValueError('subject is required')
+            entry.subject = subject
+
+        for field in ('room', 'teacher', 'note'):
             if field in data:
                 setattr(entry, field, data[field])
 
-        db.session.commit()
-        return entry
+        try:
+            db.session.commit()
+            return entry
+        except Exception:
+            db.session.rollback()
+            raise
 
     @staticmethod
     def delete_entry(entry_id: int, family_id: int) -> None:
         entry = TimetableEntry.query.filter_by(id=entry_id, family_id=family_id).first()
         if not entry:
-            raise ValueError('Eintrag nicht gefunden')
-        db.session.delete(entry)
-        db.session.commit()
+            raise ValueError('Entry not found')
+        try:
+            db.session.delete(entry)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
