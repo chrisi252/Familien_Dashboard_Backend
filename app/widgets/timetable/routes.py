@@ -1,8 +1,9 @@
 """Stundenplan Widget Routen"""
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
-from app.widgets.timetable.service import TimetableService
+
 from app.utils import require_widget_permission
+from app.widgets.timetable.service import TimetableService
 
 bp = Blueprint('timetable', __name__, url_prefix='/api/families')
 

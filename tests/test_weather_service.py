@@ -1,9 +1,10 @@
 """Tests for WeatherService"""
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from app.widgets.weather.service import WeatherService
+import pytest
+
 from app.models import FamilyWeatherConfig
+from app.widgets.weather.service import WeatherService
 from tests.conftest import make_family
 
 _FAKE_API_KEY = patch.dict('os.environ', {'OPENWEATHER_API_KEY': 'test-key'})

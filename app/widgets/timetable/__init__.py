@@ -1,5 +1,6 @@
-from .widget import TimetableWidget
 from app.widgets.registry import register
+
+from .widget import TimetableWidget
 
 register(TimetableWidget())
 

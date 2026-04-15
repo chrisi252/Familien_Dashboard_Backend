@@ -5,8 +5,8 @@ Revises: ca8592eefde6
 Create Date: 2026-04-12 14:08:44.335341
 
 """
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 revision = '55b7002da431'
 down_revision = 'ca8592eefde6'

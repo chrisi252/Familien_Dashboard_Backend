@@ -1,9 +1,10 @@
 """Systemadmin Routen"""
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
-from app.utils import require_system_admin
+
 from app.models import Family
 from app.services import UserService
+from app.utils import require_system_admin
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 

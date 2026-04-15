@@ -1,8 +1,10 @@
 """Wiederverwendbare Routen-Dekoratoren"""
 from functools import wraps
+
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity
-from app.models import UserFamilyRole, User, FamilyWidget, WidgetType, WidgetUserPermission
+
+from app.models import FamilyWidget, User, UserFamilyRole, WidgetType, WidgetUserPermission
 
 
 def require_family_admin(f):

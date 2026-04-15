@@ -1,6 +1,6 @@
 """Widget Service"""
 from app import db
-from app.models import FamilyWidget, WidgetType, WidgetUserPermission, UserWidgetConfig
+from app.models import FamilyWidget, UserWidgetConfig, WidgetType, WidgetUserPermission
 
 
 class WidgetService:

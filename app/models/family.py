@@ -1,6 +1,7 @@
 """Family and UserFamilyRole Models"""
-from app import db
 from datetime import datetime
+
+from app import db
 
 
 class Family(db.Model):

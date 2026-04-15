@@ -1,9 +1,10 @@
 """Wetter Widget Routen"""
 import requests
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
-from app.widgets.weather.service import WeatherService
+
 from app.utils import require_widget_permission
+from app.widgets.weather.service import WeatherService
 
 bp = Blueprint('weather', __name__, url_prefix='/api/families')
 

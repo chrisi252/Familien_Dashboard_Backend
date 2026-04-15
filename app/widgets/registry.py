@@ -8,30 +8,31 @@ Ablauf:
    und für jede Familie FamilyWidget + WidgetUserPermission angelegt sind.
 """
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.widgets.base import BaseWidget
 
-_registry: dict[str, 'BaseWidget'] = {}
+_registry: dict[str, BaseWidget] = {}
 
 
-def register(widget: 'BaseWidget') -> None:
+def register(widget: BaseWidget) -> None:
     _registry[widget.key] = widget
 
 
-def get(key: str) -> 'BaseWidget | None':
+def get(key: str) -> BaseWidget | None:
     return _registry.get(key)
 
 
-def get_all() -> list['BaseWidget']:
+def get_all() -> list[BaseWidget]:
     return list(_registry.values())
 
 
 def sync_to_db() -> None:
     """Synchronisiert WidgetTypes und legt FamilyWidget + Berechtigungen für alle Familien an."""
     from app import db
-    from app.models import WidgetType, FamilyWidget, Family, UserFamilyRole
+    from app.models import Family, FamilyWidget, UserFamilyRole, WidgetType
     from app.services.family_service import _create_family_widget, _create_widget_permission
 
     for widget in _registry.values():

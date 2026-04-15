@@ -1,9 +1,9 @@
 """Tests for FamilyService — fokus auf Berechtigungslogik und Invarianten"""
 import pytest
 
+from app.models import FamilyWidget, UserFamilyRole, UserWidgetConfig, WidgetUserPermission
 from app.services.family_service import FamilyService
-from app.models import UserFamilyRole, FamilyWidget, WidgetUserPermission, UserWidgetConfig
-from tests.conftest import make_user, make_family, assign_role
+from tests.conftest import make_user
 
 
 class TestCreateFamily:

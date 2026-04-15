@@ -1,6 +1,13 @@
-from flask import Blueprint, request, jsonify
-from app.services import UserService, FamilyService, RoleService
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, set_access_cookies, unset_jwt_cookies
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import (
+    create_access_token,
+    get_jwt_identity,
+    jwt_required,
+    set_access_cookies,
+    unset_jwt_cookies,
+)
+
+from app.services import FamilyService, RoleService, UserService
 
 user_bp = Blueprint('user', __name__, url_prefix='/api/users')
 

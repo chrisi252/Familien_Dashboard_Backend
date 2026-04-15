@@ -1,8 +1,9 @@
 from flask import Blueprint, jsonify
-from .user import user_bp
-from .family import family_bp
-from .widget import widget_bp
+
 from .admin import admin_bp
+from .family import family_bp
+from .user import user_bp
+from .widget import widget_bp
 
 main_bp = Blueprint('main', __name__)
 

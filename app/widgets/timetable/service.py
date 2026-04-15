@@ -1,5 +1,6 @@
 """Stundenplan Widget Service"""
 import re
+
 from app import db
 from app.models import TimetableEntry
 from app.models.timetable import DEFAULT_COLOR

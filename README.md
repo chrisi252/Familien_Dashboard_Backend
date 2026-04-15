@@ -124,6 +124,21 @@ uv run pytest
 uv run pytest --cov=app
 ```
 
+## Linting
+
+[Ruff](https://docs.astral.sh/ruff/) ist als Dev-Dependency konfiguriert.
+
+```bash
+# Linting
+uv run ruff check .
+
+# Auto-fix (Import-Sortierung, unused imports, etc.)
+uv run ruff check . --fix
+
+# Formatierung
+uv run ruff format .
+```
+
 ## Neue Ressource anlegen
 
 1. Model → `app/models/<name>.py` + Export in `app/models/__init__.py`

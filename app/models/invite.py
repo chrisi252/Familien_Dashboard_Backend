@@ -1,6 +1,7 @@
 """Family Invite Code Model"""
-from app import db
 from datetime import datetime
+
+from app import db
 
 
 class FamilyInviteCode(db.Model):

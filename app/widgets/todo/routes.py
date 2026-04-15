@@ -1,8 +1,9 @@
 """Todo Widget Routen"""
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
-from app.widgets.todo.service import TodoService
+
 from app.utils import require_widget_permission
+from app.widgets.todo.service import TodoService
 
 bp = Blueprint('todo', __name__, url_prefix='/api/families')
 

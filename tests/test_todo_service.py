@@ -1,10 +1,10 @@
 """Tests for TodoService"""
 import pytest
 
-from app.widgets.todo.service import TodoService
 from app.models import Todo
-from tests.conftest import make_user, make_family
 from app.services.family_service import FamilyService
+from app.widgets.todo.service import TodoService
+from tests.conftest import make_family, make_user
 
 
 class TestGetTodos:

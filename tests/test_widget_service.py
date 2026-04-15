@@ -1,10 +1,16 @@
 """Tests for WidgetService"""
 import pytest
 
-from app.services.widget_service import WidgetService
+from app.models import FamilyWidget, UserWidgetConfig, WidgetUserPermission
 from app.services.family_service import FamilyService
-from app.models import FamilyWidget, WidgetUserPermission, UserWidgetConfig
-from tests.conftest import make_user, make_family, make_widget_type, make_family_widget, grant_permission
+from app.services.widget_service import WidgetService
+from tests.conftest import (
+    grant_permission,
+    make_family,
+    make_family_widget,
+    make_user,
+    make_widget_type,
+)
 
 
 class TestGetWidgetsForUser:
@@ -42,7 +48,7 @@ class TestGetWidgetsForUser:
     def test_user_only_sees_own_family_widgets(self, db_transaction):
         admin = make_user(username='admin')
         other_user = make_user(username='other')
-        family_a = FamilyService.create_family('FamilieA', admin.id)
+        FamilyService.create_family('FamilieA', admin.id)
         family_b = FamilyService.create_family('FamilieB', other_user.id)
 
         # admin hat keine Permissions in family_b

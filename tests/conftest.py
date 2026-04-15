@@ -2,8 +2,17 @@
 import pytest
 from werkzeug.security import generate_password_hash
 
-from app import create_app, db as _db
-from app.models import Role, User, Family, UserFamilyRole, WidgetType, FamilyWidget, WidgetUserPermission
+from app import create_app
+from app import db as _db
+from app.models import (
+    Family,
+    FamilyWidget,
+    Role,
+    User,
+    UserFamilyRole,
+    WidgetType,
+    WidgetUserPermission,
+)
 from app.widgets.registry import sync_to_db
 
 

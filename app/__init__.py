@@ -3,9 +3,9 @@ import os
 from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -59,7 +59,7 @@ def _configure_jwt(app: Flask) -> None:
 
 
 def _register_blueprints(app: Flask) -> None:
-    from app.routes import main_bp, user_bp, family_bp, widget_bp, admin_bp
+    from app.routes import admin_bp, family_bp, main_bp, user_bp, widget_bp
     for bp in (main_bp, user_bp, family_bp, widget_bp, admin_bp):
         app.register_blueprint(bp)
 
@@ -67,10 +67,9 @@ def _register_blueprints(app: Flask) -> None:
 def _register_widgets(flask_app: Flask) -> None:
     # Jedes Widget-Package registriert sich selbst in seinem __init__.py.
     # Die Imports lösen diese Registrierung aus.
+    import app.widgets.timetable  # noqa: F401
     import app.widgets.todo  # noqa: F401
     import app.widgets.weather  # noqa: F401
-    import app.widgets.timetable  # noqa: F401
-
     from app.widgets.registry import get_all
     for widget in get_all():
         widget.register_routes(flask_app)
@@ -98,8 +97,9 @@ def _seed_system_admin():
     if not admin_username or not admin_password:
         return
 
-    from app.models import User
     from werkzeug.security import generate_password_hash
+
+    from app.models import User
 
     if User.query.filter_by(username=admin_username).first():
         return

@@ -2,7 +2,17 @@ import secrets
 from datetime import datetime, timedelta
 
 from app import db
-from app.models import Family, UserFamilyRole, Role, User, FamilyWidget, WidgetUserPermission, WidgetType, FamilyInviteCode, UserWidgetConfig
+from app.models import (
+    Family,
+    FamilyInviteCode,
+    FamilyWidget,
+    Role,
+    User,
+    UserFamilyRole,
+    UserWidgetConfig,
+    WidgetType,
+    WidgetUserPermission,
+)
 
 _CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'  # ohne 0/O/I/1 zur Verwechslungsvermeidung
 _INVITE_CODE_LENGTH = 6

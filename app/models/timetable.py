@@ -1,6 +1,7 @@
 """Stundenplan Model"""
-from app import db
 from datetime import datetime
+
+from app import db
 
 DEFAULT_COLOR = '#3B82F6'
 

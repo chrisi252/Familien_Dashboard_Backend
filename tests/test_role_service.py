@@ -1,6 +1,6 @@
 """Tests for RoleService"""
-from app.services.role_service import RoleService
 from app.services.family_service import FamilyService
+from app.services.role_service import RoleService
 from tests.conftest import make_user
 
 

@@ -1,5 +1,6 @@
-from .widget import WeatherWidget
 from app.widgets.registry import register
+
+from .widget import WeatherWidget
 
 register(WeatherWidget())
 

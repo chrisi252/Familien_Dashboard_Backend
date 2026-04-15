@@ -1,5 +1,6 @@
-from .widget import TodoWidget
 from app.widgets.registry import register
+
+from .widget import TodoWidget
 
 register(TodoWidget())
 
