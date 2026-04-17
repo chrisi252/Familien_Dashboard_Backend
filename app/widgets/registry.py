@@ -1,11 +1,11 @@
-"""Widget Registry — in-memory Store für alle registrierten Widgets.
+"""Widget Registry — in-memory store for all explicitly registered widgets.
 
 Ablauf:
-1. Jedes Widget-Package ruft register() in seiner __init__.py auf.
-2. create_app() importiert alle Widget-Packages (triggert register()).
-3. sync_to_db() wird beim App-Start aufgerufen und stellt sicher,
-   dass alle registrierten Widgets als WidgetType in der DB existieren
-   und für jede Familie FamilyWidget + WidgetUserPermission angelegt sind.
+1. create_app() erstellt alle Widget-Instanzen und ruft register() explizit auf.
+2. Anschließend werden die Widget-Routen am Flask-App-Objekt registriert.
+3. sync_to_db() stellt sicher, dass alle registrierten Widgets als WidgetType
+    in der DB existieren und für jede Familie FamilyWidget +
+    WidgetUserPermission angelegt sind.
 """
 from __future__ import annotations
 
