@@ -36,10 +36,13 @@ def create_app(test_config=None):
 # ---------------------------------------------------------------------------
 
 def _configure_cors(app: Flask) -> None:
+    frontend_url = os.environ.get('FRONTEND_URL')
+    if not frontend_url:
+        raise RuntimeError('FRONTEND_URL environment variable is not set')
     CORS(
         app,
         supports_credentials=True,
-        origins=os.environ.get('FRONTEND_URL', 'http://localhost:3000'),
+        origins=frontend_url,
     )
 
 

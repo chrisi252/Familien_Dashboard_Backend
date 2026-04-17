@@ -1,4 +1,6 @@
 """Shared test fixtures"""
+import os
+
 import pytest
 from werkzeug.security import generate_password_hash
 
@@ -17,6 +19,7 @@ from app.widgets.registry import sync_to_db
 
 
 def create_app_for_testing():
+    os.environ.setdefault('FRONTEND_URL', 'http://localhost:3000')
     app = create_app(test_config={
         'TESTING': True,
         'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
