@@ -184,6 +184,113 @@ class TestRemoveUserFromFamily:
         assert perms_b > 0
 
 
+class TestChangeUserRole:
+
+    def test_changes_guest_to_admin(self, db_transaction):
+        admin = make_user(username='admin')
+        family = FamilyService.create_family('Familie', admin.id)
+        guest = make_user(username='guest')
+        FamilyService.add_user_to_family(guest.id, family.id)
+
+        membership = FamilyService.change_user_role(guest.id, family.id, 'Familyadmin')
+
+        assert membership.role.name == 'Familyadmin'
+
+    def test_changes_admin_to_guest(self, db_transaction):
+        admin = make_user(username='admin')
+        family = FamilyService.create_family('Familie', admin.id)
+        second_admin = make_user(username='admin2')
+        FamilyService.add_user_to_family(second_admin.id, family.id, role_name='Familyadmin')
+
+        membership = FamilyService.change_user_role(second_admin.id, family.id, 'Guest')
+
+        assert membership.role.name == 'Guest'
+
+    def test_same_role_is_noop(self, db_transaction):
+        admin = make_user(username='admin')
+        family = FamilyService.create_family('Familie', admin.id)
+        guest = make_user(username='guest')
+        FamilyService.add_user_to_family(guest.id, family.id)
+
+        membership = FamilyService.change_user_role(guest.id, family.id, 'Guest')
+
+        assert membership.role.name == 'Guest'
+
+    def test_non_member_raises(self, db_transaction):
+        admin = make_user(username='admin')
+        family = FamilyService.create_family('Familie', admin.id)
+        stranger = make_user(username='stranger')
+
+        with pytest.raises(ValueError, match='not a member'):
+            FamilyService.change_user_role(stranger.id, family.id, 'Familyadmin')
+
+    def test_unknown_role_raises(self, db_transaction):
+        admin = make_user(username='admin')
+        family = FamilyService.create_family('Familie', admin.id)
+        guest = make_user(username='guest')
+        FamilyService.add_user_to_family(guest.id, family.id)
+
+        with pytest.raises(ValueError, match='Role.*not found'):
+            FamilyService.change_user_role(guest.id, family.id, 'Nonexistent')
+
+    def test_unknown_user_raises(self, db_transaction):
+        admin = make_user(username='admin')
+        family = FamilyService.create_family('Familie', admin.id)
+
+        with pytest.raises(ValueError, match='User not found'):
+            FamilyService.change_user_role(99999, family.id, 'Guest')
+
+    def test_unknown_family_raises(self, db_transaction):
+        user = make_user()
+
+        with pytest.raises(ValueError, match='Family not found'):
+            FamilyService.change_user_role(user.id, 99999, 'Guest')
+
+    def test_rebuilds_widget_permissions(self, db_transaction):
+        admin = make_user(username='admin')
+        family = FamilyService.create_family('Familie', admin.id)
+        guest = make_user(username='guest')
+        FamilyService.add_user_to_family(guest.id, family.id)
+
+        family_widget_ids = [fw.id for fw in FamilyWidget.query.filter_by(family_id=family.id).all()]
+        perms_before = WidgetUserPermission.query.filter(
+            WidgetUserPermission.user_id == guest.id,
+            WidgetUserPermission.family_widget_id.in_(family_widget_ids),
+        ).all()
+        assert len(perms_before) > 0
+
+        FamilyService.change_user_role(guest.id, family.id, 'Familyadmin')
+
+        perms_after = WidgetUserPermission.query.filter(
+            WidgetUserPermission.user_id == guest.id,
+            WidgetUserPermission.family_widget_id.in_(family_widget_ids),
+        ).all()
+        assert len(perms_after) == len(perms_before)
+
+    def test_does_not_affect_other_family_permissions(self, db_transaction):
+        admin_a = make_user(username='admin_a')
+        admin_b = make_user(username='admin_b')
+        family_a = FamilyService.create_family('FamilieA', admin_a.id)
+        family_b = FamilyService.create_family('FamilieB', admin_b.id)
+        guest = make_user(username='guest')
+        FamilyService.add_user_to_family(guest.id, family_a.id)
+        FamilyService.add_user_to_family(guest.id, family_b.id)
+
+        family_b_widget_ids = [fw.id for fw in FamilyWidget.query.filter_by(family_id=family_b.id).all()]
+        perms_b_before = WidgetUserPermission.query.filter(
+            WidgetUserPermission.user_id == guest.id,
+            WidgetUserPermission.family_widget_id.in_(family_b_widget_ids),
+        ).count()
+
+        FamilyService.change_user_role(guest.id, family_a.id, 'Familyadmin')
+
+        perms_b_after = WidgetUserPermission.query.filter(
+            WidgetUserPermission.user_id == guest.id,
+            WidgetUserPermission.family_widget_id.in_(family_b_widget_ids),
+        ).count()
+        assert perms_b_after == perms_b_before
+
+
 class TestIsMember:
 
     def test_member_returns_true(self, db_transaction):

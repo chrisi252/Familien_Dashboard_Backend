@@ -95,6 +95,50 @@ def delete_family(family_id):
         return jsonify({'error': 'Failed to delete family', 'details': str(e)}), 500
 
 
+@family_bp.route('/<int:family_id>/members/<int:user_id>', methods=['DELETE'])
+@jwt_required()
+@require_family_admin
+def remove_member(family_id, user_id):
+    try:
+        current_user_id = int(get_jwt_identity())
+        if current_user_id == user_id:
+            return jsonify({'error': 'Cannot remove yourself from the family'}), 400
+
+        FamilyService.remove_user_from_family(user_id, family_id)
+        return jsonify({'message': 'Member removed successfully'}), 200
+
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': 'Failed to remove member', 'details': str(e)}), 500
+
+
+@family_bp.route('/<int:family_id>/members/<int:user_id>/role', methods=['PUT'])
+@jwt_required()
+@require_family_admin
+def change_member_role(family_id, user_id):
+    try:
+        current_user_id = int(get_jwt_identity())
+        if current_user_id == user_id:
+            return jsonify({'error': 'Cannot change your own role'}), 400
+
+        data = request.get_json()
+        if not data or not data.get('role_name'):
+            return jsonify({'error': 'Field "role_name" is required'}), 400
+
+        role_name = data['role_name']
+        if role_name not in ('Familyadmin', 'Guest'):
+            return jsonify({'error': 'Invalid role. Must be "Familyadmin" or "Guest"'}), 400
+
+        membership = FamilyService.change_user_role(user_id, family_id, role_name)
+        return jsonify(membership.to_dict()), 200
+
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': 'Failed to change role', 'details': str(e)}), 500
+
+
 @family_bp.route('/<int:family_id>/invite-code', methods=['POST'])
 @jwt_required()
 @require_family_admin
