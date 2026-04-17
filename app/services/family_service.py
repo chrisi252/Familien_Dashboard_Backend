@@ -129,6 +129,41 @@ class FamilyService:
             raise
 
     @staticmethod
+    def change_user_role(user_id, family_id, role_name):
+        _get_family_or_raise(family_id)
+        _get_user_or_raise(user_id)
+
+        membership = UserFamilyRole.query.filter_by(user_id=user_id, family_id=family_id).first()
+        if not membership:
+            raise ValueError('User is not a member of this family')
+
+        role = _get_role_or_raise(role_name)
+        if membership.role_id == role.id:
+            return membership
+
+        try:
+            membership.role_id = role.id
+
+            family_widget_ids = [
+                fw.id for fw in FamilyWidget.query.filter_by(family_id=family_id).all()
+            ]
+            if family_widget_ids:
+                WidgetUserPermission.query.filter(
+                    WidgetUserPermission.user_id == user_id,
+                    WidgetUserPermission.family_widget_id.in_(family_widget_ids),
+                ).delete(synchronize_session='fetch')
+
+                for family_widget in FamilyWidget.query.filter_by(family_id=family_id).all():
+                    widget_key = family_widget.widget_type.key if family_widget.widget_type else None
+                    _create_widget_permission(family_widget.id, user_id, role_name, widget_key)
+
+            db.session.commit()
+            return membership
+        except Exception:
+            db.session.rollback()
+            raise
+
+    @staticmethod
     def delete_family(family_id):
         family = _get_family_or_raise(family_id)
         try:
