@@ -55,7 +55,7 @@ def _configure_jwt(app: Flask) -> None:
     app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
     app.config['JWT_TOKEN_LOCATION'] = ['cookies']
     app.config['JWT_COOKIE_HTTPONLY'] = True
-    app.config['JWT_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'
+    app.config['JWT_COOKIE_SECURE'] = os.environ.get('PRODUCTION', '').lower() in ('1', 'true')
     app.config['JWT_COOKIE_SAMESITE'] = 'Strict'
     app.config['JWT_COOKIE_CSRF_PROTECT'] = True
     JWTManager(app)
