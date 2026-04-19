@@ -7,12 +7,12 @@ from app.widgets.weather.widget import WeatherWidget
 
 
 def get_widget_instances() -> list[BaseWidget]:
-	"""Returns all widget instances that should be registered at app startup."""
-	return [
-		TimetableWidget(),
-		TodoWidget(),
-		WeatherWidget(),
-	]
+    """Returns all widget instances that should be registered at app startup."""
+    return [
+        TimetableWidget(),
+        TodoWidget(),
+        WeatherWidget(),
+    ]
 
 
-__all__ = ['get_widget_instances']
+__all__ = ["get_widget_instances"]

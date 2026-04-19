@@ -9,7 +9,7 @@ from tests.conftest import make_user
 class TestCreateUser:
 
     def test_creates_user_with_correct_fields(self, db_transaction):
-        user = UserService.create_user('max', 'secret', 'Max', 'Mustermann')
+        user = UserService.create_user('max', 'secret123', 'Max', 'Mustermann')
         assert user.id is not None
         assert user.username == 'max'
         assert user.first_name == 'Max'
@@ -22,33 +22,37 @@ class TestCreateUser:
         assert check_password_hash(user.password_hash, 'secret123')
 
     def test_username_is_stripped(self, db_transaction):
-        user = UserService.create_user('  max  ', 'pw', 'Max', 'M')
+        user = UserService.create_user('  max  ', 'password1', 'Max', 'M')
         assert user.username == 'max'
 
     def test_duplicate_username_raises(self, db_transaction):
-        UserService.create_user('max', 'pw', 'Max', 'M')
+        UserService.create_user('max', 'password1', 'Max', 'M')
         with pytest.raises(ValueError, match='already exists'):
-            UserService.create_user('max', 'pw2', 'Max', 'M')
+            UserService.create_user('max', 'password2', 'Max', 'M')
 
     def test_empty_username_raises(self, db_transaction):
         with pytest.raises(ValueError):
-            UserService.create_user('', 'pw', 'Max', 'M')
+            UserService.create_user('', 'password1', 'Max', 'M')
 
     def test_whitespace_only_username_raises(self, db_transaction):
         with pytest.raises(ValueError):
-            UserService.create_user('   ', 'pw', 'Max', 'M')
+            UserService.create_user('   ', 'password1', 'Max', 'M')
 
     def test_empty_password_raises(self, db_transaction):
         with pytest.raises(ValueError):
             UserService.create_user('max', '', 'Max', 'M')
 
+    def test_short_password_raises(self, db_transaction):
+        with pytest.raises(ValueError, match='at least 6 characters'):
+            UserService.create_user('max', 'abc', 'Max', 'M')
+
     def test_empty_first_name_raises(self, db_transaction):
         with pytest.raises(ValueError):
-            UserService.create_user('max', 'pw', '', 'M')
+            UserService.create_user('max', 'password1', '', 'M')
 
     def test_empty_last_name_raises(self, db_transaction):
         with pytest.raises(ValueError):
-            UserService.create_user('max', 'pw', 'Max', '')
+            UserService.create_user('max', 'password1', 'Max', '')
 
 
 class TestVerifyPassword:

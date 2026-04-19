@@ -36,10 +36,13 @@ def create_app(test_config=None):
 # ---------------------------------------------------------------------------
 
 def _configure_cors(app: Flask) -> None:
+    frontend_url = os.environ.get('FRONTEND_URL')
+    if not frontend_url:
+        raise RuntimeError('FRONTEND_URL environment variable is not set')
     CORS(
         app,
         supports_credentials=True,
-        origins=os.environ.get('FRONTEND_URL', 'http://localhost:3000'),
+        origins=frontend_url,
     )
 
 
@@ -52,9 +55,9 @@ def _configure_jwt(app: Flask) -> None:
     app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
     app.config['JWT_TOKEN_LOCATION'] = ['cookies']
     app.config['JWT_COOKIE_HTTPONLY'] = True
-    app.config['JWT_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'
-    app.config['JWT_COOKIE_SAMESITE'] = 'Lax'
-    app.config['JWT_COOKIE_CSRF_PROTECT'] = False
+    app.config['JWT_COOKIE_SECURE'] = os.environ.get('PRODUCTION', '').lower() in ('1', 'true')
+    app.config['JWT_COOKIE_SAMESITE'] = 'Strict'
+    app.config['JWT_COOKIE_CSRF_PROTECT'] = True
     JWTManager(app)
 
 

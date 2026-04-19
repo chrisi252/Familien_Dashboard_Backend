@@ -16,6 +16,10 @@ class UserService:
             raise ValueError('Username is required')
         if not password:
             raise ValueError('Password is required')
+        if len(password) < 6:
+            raise ValueError('Password must be at least 6 characters long')
+        if len(password) > 128:
+            raise ValueError('Password must not exceed 128 characters')
         if not first_name or not first_name.strip():
             raise ValueError('First name is required')
         if not last_name or not last_name.strip():
