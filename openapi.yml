@@ -363,6 +363,25 @@ components:
           format: date-time
           description: Expiration time (2 minutes after creation)
 
+    UserFamilyMembership:
+      type: object
+      properties:
+        family:
+          $ref: "#/components/schemas/Family"
+        role:
+          type: string
+          example: Familyadmin
+
+    UserWithFamilies:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - type: object
+          properties:
+            families:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserFamilyMembership"
+
     AuthResponse:
       type: object
       properties:
@@ -1682,6 +1701,44 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Entry not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/users:
+    get:
+      summary: List all users with their family memberships
+      description: Requires system admin. Returns every user including a `families` array with family details and role. Sorted by creation date (newest first).
+      tags: [Admin]
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of all users with their families
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/UserWithFamilies"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not a system admin
           content:
             application/json:
               schema:
