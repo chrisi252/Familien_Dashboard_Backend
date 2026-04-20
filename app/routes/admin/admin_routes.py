@@ -2,7 +2,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
-from app.models import Family
+from app.models import Family, User, UserFamilyRole
 from app.services import UserService
 from app.utils import require_system_admin
 
@@ -18,6 +18,28 @@ def list_families():
         return jsonify({'families': [f.to_dict() for f in families]}), 200
     except Exception as e:
         return jsonify({'error': 'Failed to get families', 'details': str(e)}), 500
+
+
+@admin_bp.route('/users', methods=['GET'])
+@jwt_required()
+@require_system_admin
+def list_users():
+    try:
+        users = User.query.order_by(User.created_at.desc()).all()
+        result = []
+        for user in users:
+            memberships = UserFamilyRole.query.filter_by(user_id=user.id).all()
+            families = [
+                {
+                    'family': m.family.to_dict(),
+                    'role': m.role.name if m.role else None,
+                }
+                for m in memberships
+            ]
+            result.append({**user.to_dict(), 'families': families})
+        return jsonify({'users': result}), 200
+    except Exception as e:
+        return jsonify({'error': 'Failed to get users', 'details': str(e)}), 500
 
 
 @admin_bp.route('/accounts', methods=['POST'])
