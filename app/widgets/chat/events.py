@@ -11,7 +11,7 @@ from flask_jwt_extended import decode_token
 from flask_socketio import emit, join_room, leave_room
 
 from app import db
-from app.models import ChatMessage, User, UserFamilyRole
+from app.models import ChatMessage, FamilyWidget, User, UserFamilyRole, WidgetType, WidgetUserPermission
 
 # family_id -> {user_id -> {sid, first_name, last_name}}
 family_online: dict[int, dict[int, dict]] = {}
@@ -37,6 +37,21 @@ def _get_family_id() -> int | None:
         return None
 
 
+def _has_widget_permission(user_id: int, family_id: int, permission: str) -> bool:
+    family_widget = (
+        FamilyWidget.query
+        .join(WidgetType)
+        .filter(FamilyWidget.family_id == family_id, WidgetType.key == 'chat')
+        .first()
+    )
+    if not family_widget:
+        return False
+    perm = WidgetUserPermission.query.filter_by(
+        family_widget_id=family_widget.id, user_id=user_id
+    ).first()
+    return bool(perm and getattr(perm, permission))
+
+
 def _room(family_id: int) -> str:
     return f'family_{family_id}'
 
@@ -57,12 +72,15 @@ def register_events(socketio) -> None:
         family_id = _get_family_id()
 
         if not user or not family_id:
-            return False  # reject connection
+            return False
 
         membership = UserFamilyRole.query.filter_by(
             user_id=user.id, family_id=family_id
         ).first()
         if not membership:
+            return False
+
+        if not _has_widget_permission(user.id, family_id, 'can_view'):
             return False
 
         join_room(_room(family_id))
@@ -94,6 +112,9 @@ def register_events(socketio) -> None:
         family_id = _get_family_id()
 
         if not user or not family_id:
+            return
+
+        if not _has_widget_permission(user.id, family_id, 'can_edit'):
             return
 
         text = (data.get('text') or '').strip()
