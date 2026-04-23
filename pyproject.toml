@@ -17,7 +17,8 @@ dependencies = [
     "gunicorn>=23.0.0",
     "requests>=2.32.0",
     "flask-socketio>=5.5.1",
-    "eventlet>=0.39.1",
+    "gevent>=24.11.1",
+    "gevent-websocket>=0.10.1",
 ]
 
 [dependency-groups]

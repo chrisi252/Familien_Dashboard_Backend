@@ -88,7 +88,7 @@ def _register_socketio(flask_app: Flask) -> None:
     socketio.init_app(
         flask_app,
         cors_allowed_origins=frontend_url,
-        async_mode='eventlet',
+        async_mode='gevent',
         manage_session=False,
     )
     register_events(socketio)
