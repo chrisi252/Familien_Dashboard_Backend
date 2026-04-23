@@ -5,10 +5,12 @@ from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
+from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 migrate = Migrate()
+socketio = SocketIO()
 
 
 def create_app(test_config=None):
@@ -26,6 +28,7 @@ def create_app(test_config=None):
 
     _register_blueprints(app)
     _register_widgets(app)
+    _register_socketio(app)
     _register_cli_commands(app)
 
     return app
@@ -76,6 +79,19 @@ def _register_widgets(flask_app: Flask) -> None:
 
     for widget in get_all():
         widget.register_routes(flask_app)
+
+
+def _register_socketio(flask_app: Flask) -> None:
+    from app.widgets.chat.events import register_events
+
+    frontend_url = os.environ.get('FRONTEND_URL', '*')
+    socketio.init_app(
+        flask_app,
+        cors_allowed_origins=frontend_url,
+        async_mode='gevent',
+        manage_session=False,
+    )
+    register_events(socketio)
 
 
 def _register_cli_commands(app: Flask) -> None:
