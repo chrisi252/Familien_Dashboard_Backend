@@ -1,6 +1,6 @@
 """Chat Widget HTTP Routes — returns last 10 messages for initial load."""
 from flask import Blueprint, jsonify
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import jwt_required
 
 from app.models import ChatMessage
 from app.utils import require_widget_permission
