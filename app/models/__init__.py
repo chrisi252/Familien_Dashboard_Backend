@@ -1,3 +1,4 @@
+from .chat import ChatMessage
 from .family import Family, UserFamilyRole
 from .invite import FamilyInviteCode
 from .role import Role
@@ -20,4 +21,5 @@ __all__ = [
     'FamilyWeatherConfig',
     'TimetableEntry',
     'FamilyInviteCode',
+    'ChatMessage',
 ]
