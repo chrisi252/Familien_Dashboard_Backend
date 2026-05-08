@@ -7,23 +7,23 @@ from flask_jwt_extended import (
     unset_jwt_cookies,
 )
 
+from app.schemas import LoginSchema, RegisterSchema
 from app.services import FamilyService, RoleService, UserService
+from app.utils import validate_schema
 
 user_bp = Blueprint('user', __name__, url_prefix='/api/users')
 
 
 @user_bp.route('/register', methods=['POST'])
+@validate_schema(RegisterSchema)
 def register():
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-
         user = UserService.create_user(
-            username=data.get('username'),
-            password=data.get('password'),
-            first_name=data.get('first_name'),
-            last_name=data.get('last_name')
+            username=data['username'],
+            password=data['password'],
+            first_name=data['first_name'],
+            last_name=data['last_name'],
         )
 
         access_token = create_access_token(identity=str(user.id))
@@ -41,28 +41,18 @@ def register():
 
 
 @user_bp.route('/login', methods=['POST'])
+@validate_schema(LoginSchema)
 def login():
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-
-        username = data.get('username')
-        password = data.get('password')
-
-        if not username:
-            return jsonify({'error': 'Username is required'}), 400
-        if not password:
-            return jsonify({'error': 'Password is required'}), 400
-
-        user = UserService.get_user_by_username(username)
+        user = UserService.get_user_by_username(data['username'])
         if not user:
             return jsonify({'error': 'Invalid username or password'}), 401
 
         if not user.is_active:
             return jsonify({'error': 'Account is inactive'}), 403
 
-        if not UserService.verify_password(user, password):
+        if not UserService.verify_password(user, data['password']):
             return jsonify({'error': 'Invalid username or password'}), 401
 
         access_token = create_access_token(identity=str(user.id))

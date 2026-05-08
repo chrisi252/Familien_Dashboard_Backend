@@ -2,7 +2,8 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
-from app.utils import require_widget_permission
+from app.schemas import CreateEntrySchema, UpdateEntrySchema
+from app.utils import require_widget_permission, validate_schema
 from app.widgets.timetable.service import TimetableService
 
 bp = Blueprint('timetable', __name__, url_prefix='/api/families')
@@ -31,11 +32,10 @@ def get_entries(family_id, person_name):
 @bp.route('/<int:family_id>/timetable/entries', methods=['POST'])
 @jwt_required()
 @require_widget_permission('can_edit')
+@validate_schema(CreateEntrySchema)
 def create_entry(family_id):
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
         entry = TimetableService.create_entry(family_id, data)
         return jsonify(entry.to_dict()), 201
     except ValueError as e:
@@ -47,11 +47,10 @@ def create_entry(family_id):
 @bp.route('/<int:family_id>/timetable/entries/<int:entry_id>', methods=['PUT'])
 @jwt_required()
 @require_widget_permission('can_edit')
+@validate_schema(UpdateEntrySchema)
 def update_entry(family_id, entry_id):
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
         entry = TimetableService.update_entry(entry_id, family_id, data)
         return jsonify(entry.to_dict()), 200
     except ValueError as e:
