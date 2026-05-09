@@ -14,11 +14,11 @@ depends_on = None
 
 
 def upgrade():
-    for role in ('Familyadmin', 'Guest', 'Systemadmin'):
+    for role in ('Familyadmin', 'Guest'):
         op.execute(
             f"INSERT INTO roles (name) VALUES ('{role}') ON CONFLICT (name) DO NOTHING"
         )
 
 
 def downgrade():
-    op.execute("DELETE FROM roles WHERE name IN ('Familyadmin', 'Guest', 'Systemadmin')")
+    op.execute("DELETE FROM roles WHERE name IN ('Familyadmin', 'Guest')")
