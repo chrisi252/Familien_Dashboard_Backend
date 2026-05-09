@@ -19,7 +19,6 @@ dependencies = [
     "flask-socketio>=5.5.1",
     "gevent>=24.11.1",
     "gevent-websocket>=0.10.1",
-    "redis>=5.0.0",
     "marshmallow>=3.0.0",
 ]
 

@@ -10,13 +10,10 @@ services:
       FRONTEND_URL: ${FRONTEND_URL}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin1234!}
-      REDIS_URL: redis://redis:6379/0
     ports:
       - "127.0.0.1:${BACKEND_PORT:-5000}:5000"
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health')"]
@@ -43,18 +40,6 @@ services:
           "CMD-SHELL",
           "pg_isready -U ${POSTGRES_USER:-dashboard_user} -d ${POSTGRES_DB:-familien_dashboard}",
         ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: familien_dashboard_redis
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5

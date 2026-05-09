@@ -85,13 +85,11 @@ def _register_socketio(flask_app: Flask) -> None:
     from app.widgets.chat.events import register_events
 
     frontend_url = os.environ.get('FRONTEND_URL', '*')
-    redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
     socketio.init_app(
         flask_app,
         cors_allowed_origins=frontend_url,
         async_mode='gevent',
         manage_session=False,
-        message_queue=redis_url,
     )
     register_events(socketio)
 

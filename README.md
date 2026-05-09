@@ -11,7 +11,6 @@ REST API für das Familien-Dashboard. Gebaut mit Flask, PostgreSQL, Redis und JW
 | Migrationen | Flask-Migrate (Alembic) |
 | Authentifizierung | JWT in HTTP-only Cookies |
 | Echtzeit | SocketIO (Gevent) |
-| Message Queue | Redis (SocketIO Multi-Worker) |
 | Validierung | Marshmallow |
 | Package Manager | [uv](https://docs.astral.sh/uv/) |
 
@@ -71,9 +70,6 @@ DATABASE_URL=postgresql+psycopg://dashboard:password@localhost:5432/dashboard
 # JWT — langen zufälligen String verwenden: openssl rand -hex 32
 JWT_SECRET_KEY=dein-geheimer-schluessel
 
-# Redis
-REDIS_URL=redis://localhost:6379/0
-
 # Frontend-URL (für CORS)
 FRONTEND_URL=http://localhost:3000
 
@@ -85,7 +81,7 @@ ADMIN_USERNAME=admin
 ADMIN_PASSWORD=Admin1234!
 ```
 
-### 2. Datenbank & Redis starten
+### 2. Datenbank starten
 
 ```bash
 docker compose up -d
@@ -282,7 +278,7 @@ Login gibt ein JWT als HTTP-only Cookie zurück. Das Cookie wird bei allen folge
 ## Docker Compose
 
 ```bash
-docker compose up -d          # Datenbank & Redis starten
+docker compose up -d          # Datenbank starten
 docker compose down           # Stoppen
 docker compose down -v        # Stoppen inkl. Daten löschen
 docker compose logs -f        # Logs verfolgen
