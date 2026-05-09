@@ -1,6 +1,6 @@
 # Familien-Dashboard Backend
 
-REST API für das Familien-Dashboard. Gebaut mit Flask, PostgreSQL, Redis und JWT-Authentifizierung über HTTP-only Cookies.
+REST API für das Familien-Dashboard. Gebaut mit Flask, PostgreSQL und JWT-Authentifizierung über HTTP-only Cookies.
 
 ## Technologie-Stack
 
@@ -183,7 +183,6 @@ app/widgets/
 
 ### Schritt 2 — Widget-Klasse erstellen
 
-`app/widgets/meinwidget/widget.py`:
 
 ```python
 from app.widgets.base import BaseWidget
