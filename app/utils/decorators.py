@@ -106,3 +106,31 @@ def require_system_admin(f):
             return jsonify({'error': 'Only system administrators have access'}), 403
         return f(*args, **kwargs)
     return decorated
+
+
+def validate_schema(schema_class):
+    """Dekorator-Factory: validiert den Request-Body gegen ein Marshmallow-Schema.
+
+    Gibt 400 mit strukturierten Fehlermeldungen zurück wenn die Validierung fehlschlägt.
+    Muss nach @jwt_required() und Berechtigungs-Dekoratoren stehen.
+
+    Args:
+        schema_class: Eine Marshmallow-Schema-Klasse
+
+    Beispiel:
+        @bp.route('/register', methods=['POST'])
+        @validate_schema(RegisterSchema)
+        def register():
+            data = request.get_json()
+            ...
+    """
+    def decorator(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            data = request.get_json(silent=True)
+            errors = schema_class().validate(data or {})
+            if errors:
+                return jsonify({'error': 'Validation failed', 'details': errors}), 400
+            return f(*args, **kwargs)
+        return decorated
+    return decorator

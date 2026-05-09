@@ -197,7 +197,7 @@ class TestChangeMemberRole:
         )
 
         assert resp.status_code == 400
-        assert 'role_name' in resp.get_json()['error']
+        assert 'role_name' in resp.get_json()['details']
 
     def test_invalid_role_name_returns_400(self, app, client, db_transaction):
         admin = make_user(username='admin')
@@ -212,7 +212,7 @@ class TestChangeMemberRole:
         )
 
         assert resp.status_code == 400
-        assert 'Invalid role' in resp.get_json()['error']
+        assert 'role_name' in resp.get_json()['details']
 
     def test_guest_cannot_change_roles(self, app, client, db_transaction):
         admin = make_user(username='admin')

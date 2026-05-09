@@ -3,7 +3,8 @@ import requests
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
-from app.utils import require_widget_permission
+from app.schemas import UpdateLocationSchema
+from app.utils import require_widget_permission, validate_schema
 from app.widgets.weather.service import WeatherService
 
 bp = Blueprint('weather', __name__, url_prefix='/api/families')
@@ -40,12 +41,10 @@ def get_location(family_id):
 @bp.route('/<int:family_id>/weather/location', methods=['PUT'])
 @jwt_required()
 @require_widget_permission('can_edit')
+@validate_schema(UpdateLocationSchema)
 def update_location(family_id):
     try:
         data = request.get_json()
-        if not data or not data.get('city'):
-            return jsonify({'error': 'Field "city" is required'}), 400
-
         config = WeatherService.update_location(family_id, data['city'].strip())
         return jsonify({
             'message': 'Location updated successfully',

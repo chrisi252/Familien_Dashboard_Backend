@@ -1,20 +1,16 @@
 """Chat Widget SocketIO Events.
 
 Rooms: 'family_{family_id}' — one room per family.
-Online tracking: family_online[family_id] = {user_id: {sid, first_name, last_name}}
 
 Auth: JWT is read from the HTTP-only cookie sent automatically by the browser
 via withCredentials. We use flask_jwt_extended.decode_token to validate it.
 """
 from flask import request
 from flask_jwt_extended import decode_token
-from flask_socketio import emit, join_room, leave_room
+from flask_socketio import emit, join_room
 
 from app import db
 from app.models import ChatMessage, FamilyWidget, User, UserFamilyRole, WidgetType, WidgetUserPermission
-
-# family_id -> {user_id -> {sid, first_name, last_name}}
-family_online: dict[int, dict[int, dict]] = {}
 
 
 def _get_user_from_cookie() -> User | None:
@@ -56,14 +52,6 @@ def _room(family_id: int) -> str:
     return f'family_{family_id}'
 
 
-def _online_list(family_id: int) -> list[dict]:
-    members = family_online.get(family_id, {})
-    return [
-        {'user_id': uid, 'first_name': info['first_name'], 'last_name': info['last_name']}
-        for uid, info in members.items()
-    ]
-
-
 def register_events(socketio) -> None:
 
     @socketio.on('connect', namespace='/chat')
@@ -84,27 +72,6 @@ def register_events(socketio) -> None:
             return False
 
         join_room(_room(family_id))
-
-        if family_id not in family_online:
-            family_online[family_id] = {}
-        family_online[family_id][user.id] = {
-            'sid': request.sid,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-        }
-
-        emit('online_members', _online_list(family_id), room=_room(family_id), namespace='/chat')
-
-    @socketio.on('disconnect', namespace='/chat')
-    def on_disconnect():
-        for family_id, members in list(family_online.items()):
-            for uid, info in list(members.items()):
-                if info['sid'] == request.sid:
-                    del family_online[family_id][uid]
-                    leave_room(_room(family_id))
-                    emit('online_members', _online_list(family_id),
-                         room=_room(family_id), namespace='/chat')
-                    return
 
     @socketio.on('send_message', namespace='/chat')
     def on_send_message(data):

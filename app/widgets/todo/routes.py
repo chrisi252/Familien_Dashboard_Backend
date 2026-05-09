@@ -2,7 +2,8 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
-from app.utils import require_widget_permission
+from app.schemas import CreateTodoSchema, UpdateTodoSchema
+from app.utils import require_widget_permission, validate_schema
 from app.widgets.todo.service import TodoService
 
 bp = Blueprint('todo', __name__, url_prefix='/api/families')
@@ -21,11 +22,10 @@ def get_todos(family_id):
 @bp.route('/<int:family_id>/todos', methods=['POST'])
 @jwt_required()
 @require_widget_permission('can_edit')
+@validate_schema(CreateTodoSchema)
 def create_todo(family_id):
     try:
         data = request.get_json()
-        if not data or not data.get('title'):
-            return jsonify({'error': 'Field "title" is required'}), 400
         todo = TodoService.create_todo(
             family_id=family_id,
             title=data['title'],
@@ -41,11 +41,10 @@ def create_todo(family_id):
 @bp.route('/<int:family_id>/todos/<int:todo_id>', methods=['PUT'])
 @jwt_required()
 @require_widget_permission('can_edit')
+@validate_schema(UpdateTodoSchema)
 def update_todo(family_id, todo_id):
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
         todo = TodoService.update_todo(todo_id, family_id, **{
             k: data[k] for k in ('title', 'description', 'is_completed') if k in data
         })

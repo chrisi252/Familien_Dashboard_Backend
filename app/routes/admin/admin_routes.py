@@ -3,8 +3,9 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
 from app.models import Family, User, UserFamilyRole
+from app.schemas import RegisterSchema
 from app.services import UserService
-from app.utils import require_system_admin
+from app.utils import require_system_admin, validate_schema
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 
@@ -45,20 +46,17 @@ def list_users():
 @admin_bp.route('/accounts', methods=['POST'])
 @jwt_required()
 @require_system_admin
+@validate_schema(RegisterSchema)
 def create_admin_account():
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-
         user = UserService.create_user(
-            username=data.get('username'),
-            password=data.get('password'),
-            first_name=data.get('first_name'),
-            last_name=data.get('last_name'),
+            username=data['username'],
+            password=data['password'],
+            first_name=data['first_name'],
+            last_name=data['last_name'],
             is_system_admin=True,
         )
-
         return jsonify({'message': 'Admin account created', 'user': user.to_dict()}), 201
 
     except ValueError as e:

@@ -1,28 +1,21 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
+from app.schemas import ChangeRoleSchema, CreateFamilySchema, JoinByCodeSchema
 from app.services import FamilyService
-from app.utils import require_family_admin
+from app.utils import require_family_admin, validate_schema
 
 family_bp = Blueprint('family', __name__, url_prefix='/api/families')
 
 
 @family_bp.route('', methods=['POST'])
 @jwt_required()
+@validate_schema(CreateFamilySchema)
 def create_family():
     try:
         current_user_id = int(get_jwt_identity())
         data = request.get_json()
-
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-
-        family_name = data.get('name')
-        if not family_name:
-            return jsonify({'error': 'Family name is required'}), 400
-
-        family = FamilyService.create_family(family_name, current_user_id)
-
+        family = FamilyService.create_family(data['name'], current_user_id)
         return jsonify(family.to_dict()), 201
 
     except ValueError as e:
@@ -86,7 +79,6 @@ def get_family(family_id):
 def delete_family(family_id):
     try:
         FamilyService.delete_family(family_id)
-
         return jsonify({'message': 'Family deleted successfully'}), 200
 
     except ValueError as e:
@@ -116,6 +108,7 @@ def remove_member(family_id, user_id):
 @family_bp.route('/<int:family_id>/members/<int:user_id>/role', methods=['PUT'])
 @jwt_required()
 @require_family_admin
+@validate_schema(ChangeRoleSchema)
 def change_member_role(family_id, user_id):
     try:
         current_user_id = int(get_jwt_identity())
@@ -123,14 +116,7 @@ def change_member_role(family_id, user_id):
             return jsonify({'error': 'Cannot change your own role'}), 400
 
         data = request.get_json()
-        if not data or not data.get('role_name'):
-            return jsonify({'error': 'Field "role_name" is required'}), 400
-
-        role_name = data['role_name']
-        if role_name not in ('Familyadmin', 'Guest'):
-            return jsonify({'error': 'Invalid role. Must be "Familyadmin" or "Guest"'}), 400
-
-        membership = FamilyService.change_user_role(user_id, family_id, role_name)
+        membership = FamilyService.change_user_role(user_id, family_id, data['role_name'])
         return jsonify(membership.to_dict()), 200
 
     except ValueError as e:
@@ -154,14 +140,11 @@ def generate_invite_code(family_id):
 
 @family_bp.route('/join-by-code', methods=['POST'])
 @jwt_required()
+@validate_schema(JoinByCodeSchema)
 def join_family_by_code():
     try:
         current_user_id = int(get_jwt_identity())
         data = request.get_json()
-
-        if not data or not data.get('code'):
-            return jsonify({'error': 'Invite code is required'}), 400
-
         user_family_role = FamilyService.join_family_by_code(current_user_id, data['code'])
         return jsonify(user_family_role.to_dict()), 200
 
